@@ -32,7 +32,6 @@ namespace LiveSplit.Defunct {
 			if (this.InvokeRequired) {
 				this.Invoke((Action)UpdateValues);
 			} else if (this.Visible && Memory != null && Memory.HookProcess()) {
-				TopMost = true;
 				string level = Memory.CurrentLevelName();
 				lblLevel.Text = string.IsNullOrEmpty(level) ? "" : level + " - " + Memory.CurrentSceneName();
 				float x = Memory.CurrentCPX();

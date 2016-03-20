@@ -57,16 +57,14 @@ namespace LiveSplit.Defunct {
 				float y = 0;
 				switch (currentSplit) {
 					case 1:
-						if (state == 0 && mem.CurrentSceneName() == "BadGrasslands_01") {
-							state++;
-						} else if (state == 1) {
-							shouldSplit = mem.CurrentPlayerX() != 0;
-						}
-						break;
+						y = mem.CurrentPlayerY();
+						shouldSplit = mem.CurrentSceneName() == "BadGrasslands_01" && y >= 125 && y < 130; break;
 					case 2: shouldSplit = mem.CurrentSceneName() == "GoodGrasslands_01" && mem.CurrentPlayerY() >= 1941; break;
 					case 3: shouldSplit = mem.CurrentSceneName() == "Forest_01" && mem.CurrentPlayerY() >= 5886; break;
 					case 4: shouldSplit = mem.CurrentSceneName() == "Slope_01" && mem.CurrentPlayerY() >= 10078; break;
-					case 5: shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && mem.CurrentPlayerY() >= -304; break;
+					case 5:
+						y = mem.CurrentPlayerY();
+						shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && y >= -304 && y < -295; break;
 					case 6: shouldSplit = mem.CurrentPlayerY() >= 5741; break;
 					case 7:
 						y = mem.CurrentPlayerY();
