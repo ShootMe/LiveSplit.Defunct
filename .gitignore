@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/bin
+/Components/LiveSplit.Defunct.exe
+/obj/Debug
+/LiveSplit.Defunct.csproj.user
+/.vs/LiveSplit.Defunct/v14
+/obj/Release
