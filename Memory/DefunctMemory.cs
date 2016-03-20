@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 namespace LiveSplit.Defunct.Memory {
 	public class DefunctMemory {
 		private ProgramPointer currentActiveCp, currentAreas, levelHandler, preloadLevel, playerHandler;
@@ -62,6 +61,8 @@ namespace LiveSplit.Defunct.Memory {
 			return playerHandler.Read<float>(0x0, 0x120);
 		}
 		public float CurrentVelocity() {
+			if (playerHandler.Value == IntPtr.Zero) { return 0; }
+
 			float x = playerHandler.Read<float>(0x00, 0x38, 0x50);
 			float y = playerHandler.Read<float>(0x00, 0x38, 0x54);
 			float z = playerHandler.Read<float>(0x00, 0x38, 0x58);
@@ -71,18 +72,22 @@ namespace LiveSplit.Defunct.Memory {
 			MemoryReader.Write<float>(Program, playerHandler.Value, 360, 0x00, 0x38, 0x0c);
 		}
 		public string CurrentLevelName() {
-			int index = preloadLevel.Read<int>();
-			if (index >= 0) {
-				IntPtr lvl = levelHandler.Read<IntPtr>(0x10, 0x08, 0x10 + (4 * index), 0x08);
-				return Program.GetString(lvl);
+			if (preloadLevel.Value != IntPtr.Zero) {
+				int index = preloadLevel.Read<int>();
+				if (index >= 0) {
+					IntPtr lvl = levelHandler.Read<IntPtr>(0x10, 0x08, 0x10 + (4 * index), 0x08);
+					return Program.GetString(lvl);
+				}
 			}
 			return string.Empty;
 		}
 		public string CurrentSceneName() {
-			int index = preloadLevel.Read<int>();
-			if (index >= 0) {
-				IntPtr lvl = levelHandler.Read<IntPtr>(0x10, 0x08, 0x10 + (4 * index), 0x0c);
-				return Program.GetString(lvl);
+			if (preloadLevel.Value != IntPtr.Zero) {
+				int index = preloadLevel.Read<int>();
+				if (index >= 0) {
+					IntPtr lvl = levelHandler.Read<IntPtr>(0x10, 0x08, 0x10 + (4 * index), 0x0c);
+					return Program.GetString(lvl);
+				}
 			}
 			return string.Empty;
 		}
@@ -259,10 +264,14 @@ namespace LiveSplit.Defunct.Memory {
 		public DefunctMemory Memory { get; set; }
 		public string Name { get; set; }
 		public bool IsStatic { get; set; }
+		private int lastID;
+		private DateTime lastTry;
 		public ProgramPointer(DefunctMemory memory, string name) {
 			this.Memory = memory;
 			this.Name = name;
 			this.IsStatic = true;
+			lastID = memory.Program == null ? -1 : memory.Program.Id;
+			lastTry = DateTime.MinValue;
 		}
 
 		public IntPtr Value {
@@ -285,13 +294,20 @@ namespace LiveSplit.Defunct.Memory {
 			return Memory.Program.GetString(p);
 		}
 		private void GetPointer(ref IntPtr ptr, string name) {
-			if (ptr == IntPtr.Zero && Memory.IsHooked) {
-				ptr = GetVersionedFunctionPointer(name);
-				if (ptr != IntPtr.Zero) {
-					if (IsStatic) {
-						ptr = Memory.Program.Read<IntPtr>(ptr, 0, 0);
-					} else {
-						ptr = Memory.Program.Read<IntPtr>(ptr, 0);
+			if (Memory.IsHooked) {
+				if (Memory.Program.Id != lastID) {
+					ptr = IntPtr.Zero;
+					lastID = Memory.Program.Id;
+				}
+				if (ptr == IntPtr.Zero && DateTime.Now > lastTry.AddSeconds(1)) {
+					lastTry = DateTime.Now;
+					ptr = GetVersionedFunctionPointer(name);
+					if (ptr != IntPtr.Zero) {
+						if (IsStatic) {
+							ptr = Memory.Program.Read<IntPtr>(ptr, 0, 0);
+						} else {
+							ptr = Memory.Program.Read<IntPtr>(ptr, 0);
+						}
 					}
 				}
 			}

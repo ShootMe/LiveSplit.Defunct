@@ -26,7 +26,7 @@ namespace LiveSplit.Defunct.Memory {
 			public IntPtr BaseAddress;
 			public IntPtr AllocationBase;
 			public uint AllocationProtect;
-			public IntPtr RegionSize;
+			public uint RegionSize;
 			public uint State;
 			public uint Protect;
 			public uint Type;
@@ -128,24 +128,24 @@ namespace LiveSplit.Defunct.Memory {
 				byteCodes[i] = GetSignature(searchStrings[i]);
 			}
 
+			long minAddress = 0;
+			long maxAddress = 0x7fffffff;
+
+			MEMORY_BASIC_INFORMATION memInfo;
+			uint memSize = (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION));
+
+			int totalBytesRead = 0;
+			int foundAddresses = 0;
+			IntPtr handle = targetProcess.Handle;
 			try {
-				long minAddress = 0;
-				long maxAddress = 0x7fffffff;
-
-				MEMORY_BASIC_INFORMATION memInfo;
-
-				int totalBytesRead = 0;
-				int foundAddresses = 0;
 				while (minAddress < maxAddress && foundAddresses < searchStrings.Length) {
-					SafeNativeMethods.VirtualQueryEx(targetProcess.Handle, (IntPtr)minAddress, out memInfo, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
+					SafeNativeMethods.VirtualQueryEx(handle, (IntPtr)minAddress, out memInfo, memSize);
 
-					// if this memory chunk is accessible
 					if ((memInfo.AllocationProtect & PAGE_EXECUTE_READWRITE) != 0 && memInfo.Type == MEM_PRIVATE && memInfo.State == MEM_COMMIT) {
-						byte[] buffer = new byte[memInfo.RegionSize.ToInt32()];
+						byte[] buffer = new byte[memInfo.RegionSize];
 
 						int bytesRead = 0;
-						// read everything in the buffer above
-						if (SafeNativeMethods.ReadProcessMemory(targetProcess.Handle, (IntPtr)memInfo.BaseAddress, buffer, memInfo.RegionSize.ToInt32(), out bytesRead)) {
+						if (SafeNativeMethods.ReadProcessMemory(handle, memInfo.BaseAddress, buffer, (int)memInfo.RegionSize, out bytesRead)) {
 							totalBytesRead += bytesRead;
 
 							for (int i = 0; i < searchStrings.Length; i++) {
@@ -159,9 +159,8 @@ namespace LiveSplit.Defunct.Memory {
 					}
 
 					// move to the next memory chunk
-					minAddress += memInfo.RegionSize.ToInt32();
+					minAddress += memInfo.RegionSize;
 				}
-
 			} catch { }
 
 			return returnAddresses;
