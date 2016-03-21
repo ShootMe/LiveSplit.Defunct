@@ -52,7 +52,11 @@ namespace LiveSplit.Defunct {
 			bool shouldSplit = false;
 
 			if (currentSplit == 0) {
-				shouldSplit = mem.CurrentSceneName() == "Cargo_Ship_01";
+				if (state == 0 && mem.SceneToLoad() == "Menu_RA") {
+					state++;
+				} else if (state == 1) {
+					shouldSplit = mem.SceneToLoad() == "Cargo_Ship_01";
+				}
 			} else if (Model.CurrentState.CurrentPhase == TimerPhase.Running) {
 				float y = 0;
 				switch (currentSplit) {
