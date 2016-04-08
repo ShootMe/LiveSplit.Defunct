@@ -43,6 +43,11 @@ namespace LiveSplit.Defunct {
 			}
 
 			if (Model != null) {
+				if (Model.CurrentState.CurrentPhase == TimerPhase.Running && Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0) {
+					mem.SetMax(160);
+				} else {
+					mem.SetMax(80);
+				}
 				HandleSplits();
 			}
 

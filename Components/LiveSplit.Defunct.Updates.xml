@@ -1,5 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <updates>
+	<update version="1.1.2">
+		<files>
+			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
+		</files>
+		<changelog>
+			<change>
+				Added 160cc logic. Make category name contain 160 in it and it will set the max speed at 160 instead of 80.
+			</change>
+		</changelog>
+	</update>
 	<update version="1.1.1">
 		<files>
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>

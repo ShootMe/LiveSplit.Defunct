@@ -72,8 +72,8 @@ namespace LiveSplit.Defunct.Memory {
 			float z = playerHandler.Read<float>(0x00, 0x38, 0x58);
 			return (float)Math.Sqrt(x * x + y * y + z * z);
 		}
-		public void SetMax() {
-			MemoryReader.Write<float>(Program, playerHandler.Value, 360, 0x00, 0x38, 0x0c);
+		public void SetMax(float maxSpeed) {
+			MemoryReader.Write<float>(Program, playerHandler.Value, maxSpeed, 0x00, 0x38, 0x0c);
 		}
 		public string CurrentLevelName() {
 			if (preloadLevel.Value != IntPtr.Zero) {
