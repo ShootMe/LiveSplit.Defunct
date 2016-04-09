@@ -1,5 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <updates>
+	<update version="1.1.3">
+		<files>
+			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
+		</files>
+		<changelog>
+			<change>
+				Change to start timer when you gain control first vs start from new game.
+			</change>
+		</changelog>
+	</update>
 	<update version="1.1.2">
 		<files>
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>

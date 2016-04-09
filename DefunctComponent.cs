@@ -56,34 +56,28 @@ namespace LiveSplit.Defunct {
 		private void HandleSplits() {
 			bool shouldSplit = false;
 
+			float y = mem.CurrentPlayerY();
 			if (currentSplit == 0) {
 				if (state == 0 && mem.SceneToLoad() == "Menu_RA") {
 					state++;
-				} else if (state == 1) {
-					shouldSplit = mem.SceneToLoad() == "Cargo_Ship_01";
+				} else if (state == 1 && mem.CurrentSceneName() == "Cargo_Ship_01" && y < -1601) {
+					state++;
+				} else if (state == 2) {
+					shouldSplit = mem.CurrentSceneName() == "Cargo_Ship_01" && y >= -1601 && y < -1400;
 				}
 			} else if (Model.CurrentState.CurrentPhase == TimerPhase.Running) {
-				float y = 0;
 				switch (currentSplit) {
-					case 1:
-						y = mem.CurrentPlayerY();
-						shouldSplit = mem.CurrentSceneName() == "BadGrasslands_01" && y >= 125 && y < 130; break;
-					case 2: shouldSplit = mem.CurrentSceneName() == "GoodGrasslands_01" && mem.CurrentPlayerY() >= 1941; break;
-					case 3: shouldSplit = mem.CurrentSceneName() == "Forest_01" && mem.CurrentPlayerY() >= 5886; break;
-					case 4: shouldSplit = mem.CurrentSceneName() == "Slope_01" && mem.CurrentPlayerY() >= 10078; break;
-					case 5:
-						y = mem.CurrentPlayerY();
-						shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && y >= -304 && y < -295; break;
-					case 6: shouldSplit = mem.CurrentPlayerY() >= 5741; break;
-					case 7:
-						y = mem.CurrentPlayerY();
-						shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Race_01" && y >= 748 && y < 770; break;
-					case 8: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Oasis_01" && mem.CurrentPlayerY() >= 8150; break;
-					case 9:
-						y = mem.CurrentPlayerY();
-						shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
-					case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && mem.CurrentPlayerY() >= 3967; break;
-					case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && mem.CurrentPlayerY() >= 9934; break;
+					case 1: shouldSplit = mem.CurrentSceneName() == "BadGrasslands_01" && y >= 125 && y < 130; break;
+					case 2: shouldSplit = mem.CurrentSceneName() == "GoodGrasslands_01" && y >= 1941 && y < 2000; break;
+					case 3: shouldSplit = mem.CurrentSceneName() == "Forest_01" && y >= 5886 && y < 5940; break;
+					case 4: shouldSplit = mem.CurrentSceneName() == "Slope_01" && y >= 10078 && y < 10130; break;
+					case 5: shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && y >= -304 && y < -295; break;
+					case 6: shouldSplit = y >= 5741; break;
+					case 7: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Race_01" && y >= 748 && y < 770; break;
+					case 8: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Oasis_01" && y >= 8150 && y < 8200; break;
+					case 9: shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
+					case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
+					case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9934 && y < 10000; break;
 				}
 			}
 
