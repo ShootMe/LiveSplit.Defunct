@@ -5,6 +5,7 @@ Autosplitter for the game Defunct
 - Starts when choosing New Game
 - Splits happen when entering new zones.
 - Final split is when you hit the guard rail into the ship
+- To use 160cc functionality, just create your splits with a category name containing 160 in the name ie) 160cc
 
 ## Setting up the autosplitter in LiveSplit
 - Go to the [releases](https://github.com/ShootMe/LiveSplit.Defunct/releases) section in this repository.
