@@ -2,7 +2,7 @@
 Autosplitter for the game Defunct
 
 - Splits are predetermined.
-- Starts when choosing New Game
+- Starts when you first get control after choosing New Game
 - Splits happen when entering new zones.
 - Final split is when you hit the guard rail into the ship
 - To use 160cc functionality, just create your splits with a category name containing 160 in the name ie) 160cc
