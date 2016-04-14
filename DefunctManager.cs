@@ -16,6 +16,9 @@ namespace LiveSplit.Defunct {
 
 		private void DefunctManager_FormClosing(object sender, FormClosingEventArgs e) {
 			e.Cancel = Memory != null;
+			if (e.Cancel && this.WindowState != FormWindowState.Minimized) {
+				this.WindowState = FormWindowState.Minimized;
+			}
 		}
 
 		private void UpdateLoop() {
@@ -40,8 +43,8 @@ namespace LiveSplit.Defunct {
 				x = Memory.CurrentPlayerX();
 				y = Memory.CurrentPlayerY();
 				lblPos.Text = "Position: (" + x.ToString("0.00") + ", " + y.ToString("0.00") + ")";
-				float cv = Memory.CurrentVelocity();
-				lblVelocity.Text = "Velocity: (" + cv.ToString("0.00") + ")";
+				Vector cv = Memory.CurrentVelocity();
+				lblVelocity.Text = "Velocity: " + cv.ToString();
 			} else if (Memory == null && this.Visible) {
 				this.Hide();
 			}

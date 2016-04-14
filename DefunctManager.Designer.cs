@@ -34,7 +34,7 @@
 			// 
 			this.lblCheckpoint.AutoSize = true;
 			this.lblCheckpoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblCheckpoint.Location = new System.Drawing.Point(12, 29);
+			this.lblCheckpoint.Location = new System.Drawing.Point(3, 23);
 			this.lblCheckpoint.Name = "lblCheckpoint";
 			this.lblCheckpoint.Size = new System.Drawing.Size(216, 20);
 			this.lblCheckpoint.TabIndex = 4;
@@ -44,17 +44,17 @@
 			// 
 			this.lblVelocity.AutoSize = true;
 			this.lblVelocity.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblVelocity.Location = new System.Drawing.Point(12, 69);
+			this.lblVelocity.Location = new System.Drawing.Point(3, 63);
 			this.lblVelocity.Name = "lblVelocity";
-			this.lblVelocity.Size = new System.Drawing.Size(113, 20);
+			this.lblVelocity.Size = new System.Drawing.Size(236, 20);
 			this.lblVelocity.TabIndex = 5;
-			this.lblVelocity.Text = "Velocity: (0.00)";
+			this.lblVelocity.Text = "Velocity: (0.00) (0.00, 0.00, 0.00)";
 			// 
 			// lblLevel
 			// 
 			this.lblLevel.AutoSize = true;
 			this.lblLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblLevel.Location = new System.Drawing.Point(12, 9);
+			this.lblLevel.Location = new System.Drawing.Point(3, 3);
 			this.lblLevel.Name = "lblLevel";
 			this.lblLevel.Size = new System.Drawing.Size(54, 20);
 			this.lblLevel.TabIndex = 7;
@@ -64,7 +64,7 @@
 			// 
 			this.lblPos.AutoSize = true;
 			this.lblPos.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblPos.Location = new System.Drawing.Point(12, 49);
+			this.lblPos.Location = new System.Drawing.Point(3, 43);
 			this.lblPos.Name = "lblPos";
 			this.lblPos.Size = new System.Drawing.Size(153, 20);
 			this.lblPos.TabIndex = 8;
@@ -75,7 +75,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
-			this.ClientSize = new System.Drawing.Size(376, 99);
+			this.ClientSize = new System.Drawing.Size(376, 89);
 			this.Controls.Add(this.lblPos);
 			this.Controls.Add(this.lblLevel);
 			this.Controls.Add(this.lblVelocity);
@@ -84,7 +84,6 @@
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
-			this.MinimizeBox = false;
 			this.Name = "DefunctManager";
 			this.Text = "Defunct Manager";
 			this.TopMost = true;

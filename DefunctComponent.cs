@@ -21,6 +21,7 @@ namespace LiveSplit.Defunct {
 		internal static string[] keys = { "CurrentSplit", "State" };
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
+		private float maxSpeed = 80f;
 
 		public DefunctComponent() {
 			mem = new DefunctMemory();
@@ -43,10 +44,14 @@ namespace LiveSplit.Defunct {
 			}
 
 			if (Model != null) {
-				if (Model.CurrentState.CurrentPhase == TimerPhase.Running && Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0) {
-					mem.SetMax(160);
-				} else {
-					mem.SetMax(80);
+				if (Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0) {
+					if (maxSpeed != 160f) {
+						maxSpeed = 160f;
+						mem.SetMax(maxSpeed);
+					}
+				} else if(maxSpeed != 80f) {
+					maxSpeed = 80f;
+					mem.SetMax(maxSpeed);
 				}
 				HandleSplits();
 			}
@@ -60,10 +65,10 @@ namespace LiveSplit.Defunct {
 			if (currentSplit == 0) {
 				if (state == 0 && mem.SceneToLoad() == "Menu_RA") {
 					state++;
-				} else if (state == 1 && mem.CurrentSceneName() == "Cargo_Ship_01" && y < -1601) {
+				} else if (state == 1 && mem.CurrentSceneName() == "Cargo_Ship_01" && y == 0) {
 					state++;
-				} else if (state == 2) {
-					shouldSplit = mem.CurrentSceneName() == "Cargo_Ship_01" && y >= -1601 && y < -1400;
+				} else if (state == 2 && mem.CurrentSceneName() == "Cargo_Ship_01" && y < -1600) {
+					shouldSplit = true;
 				}
 			} else if (Model.CurrentState.CurrentPhase == TimerPhase.Running) {
 				switch (currentSplit) {
@@ -77,7 +82,7 @@ namespace LiveSplit.Defunct {
 					case 8: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Oasis_01" && y >= 8150 && y < 8200; break;
 					case 9: shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
 					case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
-					case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9934 && y < 10000; break;
+					case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9933; break;
 				}
 			}
 

@@ -64,13 +64,13 @@ namespace LiveSplit.Defunct.Memory {
 		public string SceneToLoad() {
 			return sceneToLoad.ReadString(0x0);
 		}
-		public float CurrentVelocity() {
-			if (playerHandler.Value == IntPtr.Zero) { return 0; }
+		public Vector CurrentVelocity() {
+			if (playerHandler.Value == IntPtr.Zero) { return default(Vector); }
 
 			float x = playerHandler.Read<float>(0x00, 0x38, 0x50);
 			float y = playerHandler.Read<float>(0x00, 0x38, 0x54);
 			float z = playerHandler.Read<float>(0x00, 0x38, 0x58);
-			return (float)Math.Sqrt(x * x + y * y + z * z);
+			return new Vector() { X = x, Y = y, Z = z, M = (float)Math.Sqrt(x * x + y * y + z * z) };
 		}
 		public void SetMax(float maxSpeed) {
 			MemoryReader.Write<float>(Program, playerHandler.Value, maxSpeed, 0x00, 0x38, 0x0c);
@@ -325,6 +325,12 @@ namespace LiveSplit.Defunct.Memory {
 				}
 			}
 			return IntPtr.Zero;
+		}
+	}
+	public struct Vector {
+		public float X, Y, Z, M;
+		public override string ToString() {
+			return "(" + M.ToString("0.00") + ") (" + Math.Abs(X).ToString("0.00") + ", " + Math.Abs(Y).ToString("0.00") + ", " + Math.Abs(Z).ToString("0.00") + ")";
 		}
 	}
 }
