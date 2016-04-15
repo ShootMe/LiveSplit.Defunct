@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 namespace LiveSplit.Defunct.Memory {
 	public class DefunctMemory {
-		private ProgramPointer currentActiveCp, currentAreas, levelHandler, preloadLevel, playerHandler, sceneToLoad;
+		private ProgramPointer currentActiveCp, currentAreas, levelHandler, preloadLevel, playerHandler, sceneToLoad, saveMain;
 		private float[] junkX = { 992.36f, 725.25f, 540.18f, 1513.69f, 1082.25f, 422.82f, 1494.81f, 692.56f, 1559.98f };
 		private float[] junkY = { 6039.27f, 6288.26f, 6407.79f, 6441.79f, 6484.88f, 6676.19f, 6999.13f, 7093.40f, 7325.27f };
 		public Process Program { get; set; }
@@ -16,10 +16,60 @@ namespace LiveSplit.Defunct.Memory {
 			preloadLevel = new ProgramPointer(this, "PreloadLevel") { IsStatic = false };
 			sceneToLoad = new ProgramPointer(this, "SceneToLoad") { IsStatic = false };
 			playerHandler = new ProgramPointer(this, "PlayerHandler") { IsStatic = false };
+			saveMain = new ProgramPointer(this, "SaveHandlerMain") { IsStatic = false };
 		}
 		public float CurrentCPX() {
 			//CheckPointSystem.instance.currentActiveCp.midPos.X
 			return currentActiveCp.Read<float>(0x00, 0x78);
+		}
+		public void UnlockAllLevels() {
+			if (saveMain.Value != IntPtr.Zero) {
+				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
+				for (int i = 0; i < size; i++) {
+					IntPtr level = saveMain.Read<IntPtr>(0x00, 0x10, 0x10 + i * 4);
+					bool unlocked = Program.Read<bool>(level, 0x14);
+					bool completed = Program.Read<bool>(level, 0x15);
+					if (unlocked ^ completed) {
+						Program.Write<int>(level, 16843009, 0x14);
+					}
+				}
+			}
+		}
+		public int[] Collectibles() {
+			int[] stats = new int[3] { 0, 0, 0 };
+			if (saveMain.Value != IntPtr.Zero && preloadLevel.Value != IntPtr.Zero) {
+				int lvlIndex = preloadLevel.Read<int>();
+				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
+				int totalCount = 0;
+
+				if (lvlIndex == 5) {
+					IntPtr areas = currentAreas.Read<IntPtr>(0x00);
+					int areaSize = Program.Read<int>(areas, 0x0c);
+					if (areaSize > 0) {
+						IntPtr cps = Program.Read<IntPtr>(areas, 0x08, 0x10 + (areaSize - 1) * 4, 0x10);
+						areaSize = Program.Read<int>(cps, 0x0c);
+						if (areaSize == 9) { lvlIndex = 6; }
+					}
+				}
+
+				for (int i = 0; i < size; i++) {
+					IntPtr level = saveMain.Read<IntPtr>(0x00, 0x10, 0x10 + i * 4);
+					int length = Program.Read<int>(level, 0x08, 0x0c);
+					int count = 0;
+					for (int j = 0; j < length; j++) {
+						if (Program.Read<bool>(level, 0x08, 0x10 + j)) {
+							count++;
+							totalCount++;
+						}
+					}
+					if (i == lvlIndex) {
+						stats[0] = length;
+						stats[1] = count;
+					}
+				}
+				stats[2] = totalCount;
+			}
+			return stats;
 		}
 		public float CurrentCPY() {
 			//CheckPointSystem.instance.currentActiveCp.midPos.Y
@@ -263,7 +313,8 @@ namespace LiveSplit.Defunct.Memory {
 					{"CurrentAreas",     "8BD139128B490C4983EC0851503900E8????????83C41083EC0C503900E8????????83C410EB2C8B05????????83EC086A0050E8????????83C41085C074148B05|-69" },
 					{"PreloadLevel",     "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-95" },
 					{"SceneToLoad",      "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-56" },
-					{"PlayerHandler",    "558BEC83EC088B05????????83EC086A0050E8????????83C41085C07416B9????????8B4508890183EC0C50E8????????83C410C9C3|-46" }
+					{"PlayerHandler",    "558BEC83EC088B05????????83EC086A0050E8????????83C41085C07416B9????????8B4508890183EC0C50E8????????83C410C9C3|-46" },
+					{"SaveHandlerMain",  "EC83EC08E8????????8B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50|-105" }
 			}},
 		};
 		private IntPtr pointer;

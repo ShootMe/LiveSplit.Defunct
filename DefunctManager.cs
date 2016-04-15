@@ -35,8 +35,8 @@ namespace LiveSplit.Defunct {
 			if (this.InvokeRequired) {
 				this.Invoke((Action)UpdateValues);
 			} else if (this.Visible && Memory != null && Memory.HookProcess()) {
+				Memory.UnlockAllLevels();
 				string level = Memory.CurrentLevelName();
-				lblLevel.Text = string.IsNullOrEmpty(level) ? "" : level + " - " + Memory.CurrentSceneName();
 				float x = Memory.CurrentCPX();
 				float y = Memory.CurrentCPY();
 				lblCheckpoint.Text = string.IsNullOrEmpty(level) ? "" : Memory.CurrentCPName(x, y) + ": Power(" + Memory.CurrentCPStartStrength() + ")";
@@ -45,6 +45,8 @@ namespace LiveSplit.Defunct {
 				lblPos.Text = "Position: (" + x.ToString("0.00") + ", " + y.ToString("0.00") + ")";
 				Vector cv = Memory.CurrentVelocity();
 				lblVelocity.Text = "Velocity: " + cv.ToString();
+				int[] collectibles = Memory.Collectibles();
+				lblCollectibles.Text = "Collectibles: (" + collectibles[0] + "/" + collectibles[1] + ") (" + collectibles[2] + "/40)";
 			} else if (Memory == null && this.Visible) {
 				this.Hide();
 			}

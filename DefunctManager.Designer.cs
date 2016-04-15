@@ -26,15 +26,15 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DefunctManager));
 			this.lblCheckpoint = new System.Windows.Forms.Label();
 			this.lblVelocity = new System.Windows.Forms.Label();
-			this.lblLevel = new System.Windows.Forms.Label();
 			this.lblPos = new System.Windows.Forms.Label();
+			this.lblCollectibles = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// lblCheckpoint
 			// 
 			this.lblCheckpoint.AutoSize = true;
 			this.lblCheckpoint.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblCheckpoint.Location = new System.Drawing.Point(3, 23);
+			this.lblCheckpoint.Location = new System.Drawing.Point(3, 2);
 			this.lblCheckpoint.Name = "lblCheckpoint";
 			this.lblCheckpoint.Size = new System.Drawing.Size(216, 20);
 			this.lblCheckpoint.TabIndex = 4;
@@ -44,40 +44,40 @@
 			// 
 			this.lblVelocity.AutoSize = true;
 			this.lblVelocity.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblVelocity.Location = new System.Drawing.Point(3, 63);
+			this.lblVelocity.Location = new System.Drawing.Point(3, 42);
 			this.lblVelocity.Name = "lblVelocity";
 			this.lblVelocity.Size = new System.Drawing.Size(236, 20);
 			this.lblVelocity.TabIndex = 5;
 			this.lblVelocity.Text = "Velocity: (0.00) (0.00, 0.00, 0.00)";
 			// 
-			// lblLevel
-			// 
-			this.lblLevel.AutoSize = true;
-			this.lblLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblLevel.Location = new System.Drawing.Point(3, 3);
-			this.lblLevel.Name = "lblLevel";
-			this.lblLevel.Size = new System.Drawing.Size(54, 20);
-			this.lblLevel.TabIndex = 7;
-			this.lblLevel.Text = "Level: ";
-			// 
 			// lblPos
 			// 
 			this.lblPos.AutoSize = true;
 			this.lblPos.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.lblPos.Location = new System.Drawing.Point(3, 43);
+			this.lblPos.Location = new System.Drawing.Point(3, 22);
 			this.lblPos.Name = "lblPos";
 			this.lblPos.Size = new System.Drawing.Size(153, 20);
 			this.lblPos.TabIndex = 8;
 			this.lblPos.Text = "Position: (0.00, 0.00)";
+			// 
+			// lblCollectibles
+			// 
+			this.lblCollectibles.AutoSize = true;
+			this.lblCollectibles.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.lblCollectibles.Location = new System.Drawing.Point(3, 62);
+			this.lblCollectibles.Name = "lblCollectibles";
+			this.lblCollectibles.Size = new System.Drawing.Size(174, 20);
+			this.lblCollectibles.TabIndex = 9;
+			this.lblCollectibles.Text = "Collectibles: (0/2) (0/40)";
 			// 
 			// DefunctManager
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
-			this.ClientSize = new System.Drawing.Size(376, 89);
+			this.ClientSize = new System.Drawing.Size(376, 86);
+			this.Controls.Add(this.lblCollectibles);
 			this.Controls.Add(this.lblPos);
-			this.Controls.Add(this.lblLevel);
 			this.Controls.Add(this.lblVelocity);
 			this.Controls.Add(this.lblCheckpoint);
 			this.ForeColor = System.Drawing.Color.Black;
@@ -96,7 +96,7 @@
 		#endregion
 		private System.Windows.Forms.Label lblCheckpoint;
 		private System.Windows.Forms.Label lblVelocity;
-		private System.Windows.Forms.Label lblLevel;
 		private System.Windows.Forms.Label lblPos;
+		private System.Windows.Forms.Label lblCollectibles;
 	}
 }
