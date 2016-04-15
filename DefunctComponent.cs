@@ -45,13 +45,11 @@ namespace LiveSplit.Defunct {
 
 			if (Model != null) {
 				if (Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0) {
-					if (maxSpeed != 160f) {
-						maxSpeed = 160f;
-						mem.SetMax(maxSpeed);
-					}
-				} else if(maxSpeed != 80f) {
+					maxSpeed = 160f;
+					mem.SetMax(160);
+				} else if (maxSpeed != 80f) {
 					maxSpeed = 80f;
-					mem.SetMax(maxSpeed);
+					mem.SetMax(80);
 				}
 				HandleSplits();
 			}
