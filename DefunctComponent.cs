@@ -65,7 +65,7 @@ namespace LiveSplit.Defunct {
 					state++;
 				} else if (state == 1 && mem.CurrentSceneName() == "Cargo_Ship_01" && y == 0) {
 					state++;
-				} else if (state == 2 && mem.CurrentSceneName() == "Cargo_Ship_01" && y < -1600) {
+				} else if (state == 2 && mem.CurrentSceneName() == "Cargo_Ship_01" && y < -1400) {
 					shouldSplit = true;
 				}
 			} else if (Model.CurrentState.CurrentPhase == TimerPhase.Running) {

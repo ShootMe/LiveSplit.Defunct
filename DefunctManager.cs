@@ -46,7 +46,7 @@ namespace LiveSplit.Defunct {
 				Vector cv = Memory.CurrentVelocity();
 				lblVelocity.Text = "Velocity: " + cv.ToString();
 				int[] collectibles = Memory.Collectibles();
-				lblCollectibles.Text = "Collectibles: (" + collectibles[0] + ") (" + collectibles[2] + "/40)";
+				lblCollectibles.Text = "Collectibles: (" + collectibles[1] + "/" + collectibles[0] + ") (" + collectibles[2] + "/40)";
 			} else if (Memory == null && this.Visible) {
 				this.Hide();
 			}
