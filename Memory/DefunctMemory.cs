@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 namespace LiveSplit.Defunct.Memory {
 	public class DefunctMemory {
-		private ProgramPointer currentActiveCp, currentAreas, levelHandler, preloadLevel, playerHandler, sceneToLoad, saveMain;
+		private ProgramPointer currentActiveCp, currentAreas, levelHandler, preloadLevel, playerHandler, sceneToLoad, saveMain, isArcadePlay;
 		private float[] junkX = { 992.36f, 725.25f, 540.18f, 1513.69f, 1082.25f, 422.82f, 1494.81f, 692.56f, 1559.98f };
 		private float[] junkY = { 6039.27f, 6288.26f, 6407.79f, 6441.79f, 6484.88f, 6676.19f, 6999.13f, 7093.40f, 7325.27f };
 		public Process Program { get; set; }
@@ -17,6 +17,7 @@ namespace LiveSplit.Defunct.Memory {
 			sceneToLoad = new ProgramPointer(this, "SceneToLoad") { IsStatic = false };
 			playerHandler = new ProgramPointer(this, "PlayerHandler") { IsStatic = false };
 			saveMain = new ProgramPointer(this, "SaveHandlerMain") { IsStatic = false };
+			isArcadePlay = new ProgramPointer(this, "IsArcadePlay") { IsStatic = false };
 		}
 		public float CurrentCPX() {
 			//CheckPointSystem.instance.currentActiveCp.midPos.X
@@ -37,6 +38,12 @@ namespace LiveSplit.Defunct.Memory {
 					}
 				}
 			}
+		}
+		public bool IsArcadePlay() {
+			if (isArcadePlay.Value != IntPtr.Zero) {
+				return isArcadePlay.Read<bool>();
+			}
+			return false;
 		}
 		public int[] Collectibles() {
 			int[] stats = new int[3] { 0, 0, 0 };
@@ -94,12 +101,11 @@ namespace LiveSplit.Defunct.Memory {
 				if (listSize == 9) {
 					if (areas != IntPtr.Zero) {
 						float minDis = 99999999;
-						float pX = CurrentPlayerX();
-						float pY = CurrentPlayerY();
+						Vector pos = CurrentPlayerPos();
 						for (int i = 0; i < 9; i++) {
 							float tX = junkX[i];
 							float tY = junkY[i];
-							float dis = (float)Math.Sqrt((tX - pX) * (tX - pX) + (tY - pY) * (tY - pY));
+							float dis = (float)Math.Sqrt((tX - pos.X) * (tX - pos.X) + (tY - pos.Y) * (tY - pos.Y));
 							if (dis < minDis) {
 								minDis = dis;
 								x = tX;
@@ -111,11 +117,11 @@ namespace LiveSplit.Defunct.Memory {
 			}
 			return CheckPointNames.GetCheckpointName(x, y);
 		}
-		public float CurrentPlayerX() {
-			return playerHandler.Read<float>(0x0, 0x118);
-		}
-		public float CurrentPlayerY() {
-			return playerHandler.Read<float>(0x0, 0x120);
+		public Vector CurrentPlayerPos() {
+			float x = playerHandler.Read<float>(0x0, 0x118);
+			float y = playerHandler.Read<float>(0x0, 0x120);
+			float z = playerHandler.Read<float>(0x0, 0x11c);
+			return new Vector() { X = x, Y = y, Z = z };
 		}
 		public string SceneToLoad() {
 			return sceneToLoad.ReadString(0x0);
@@ -167,7 +173,10 @@ namespace LiveSplit.Defunct.Memory {
 			return IsHooked;
 		}
 		public void Dispose() {
-			if (Program != null) { Program.Dispose(); }
+			if (Program != null) {
+				if (!Program.HasExited) { SetMax(80); }
+				Program.Dispose();
+			}
 		}
 	}
 	public static class CheckPointNames {
@@ -319,6 +328,7 @@ namespace LiveSplit.Defunct.Memory {
 					{"CurrentAreas",     "8BD139128B490C4983EC0851503900E8????????83C41083EC0C503900E8????????83C410EB2C8B05????????83EC086A0050E8????????83C41085C074148B05|-69" },
 					{"PreloadLevel",     "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-95" },
 					{"SceneToLoad",      "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-56" },
+					{"IsArcadePlay",     "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-25" },
 					{"PlayerHandler",    "558BEC83EC088B05????????83EC086A0050E8????????83C41085C07416B9????????8B4508890183EC0C50E8????????83C410C9C3|-46" },
 					{"SaveHandlerMain",  "????????8B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8|-37" }
 			}},

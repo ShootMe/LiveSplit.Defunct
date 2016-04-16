@@ -40,9 +40,8 @@ namespace LiveSplit.Defunct {
 				float x = Memory.CurrentCPX();
 				float y = Memory.CurrentCPY();
 				lblCheckpoint.Text = string.IsNullOrEmpty(level) ? "" : Memory.CurrentCPName(x, y) + ": Power(" + Memory.CurrentCPStartStrength() + ")";
-				x = Memory.CurrentPlayerX();
-				y = Memory.CurrentPlayerY();
-				lblPos.Text = "Position: (" + x.ToString("0.00") + ", " + y.ToString("0.00") + ")";
+				Vector pos = Memory.CurrentPlayerPos();
+				lblPos.Text = "Position: (" + pos.X.ToString("0.00") + ", " + pos.Z.ToString("0.00") + ", " + pos.Y.ToString("0.00") + ")";
 				Vector cv = Memory.CurrentVelocity();
 				lblVelocity.Text = "Velocity: " + cv.ToString();
 				int[] collectibles = Memory.Collectibles();

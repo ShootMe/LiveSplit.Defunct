@@ -44,7 +44,7 @@ namespace LiveSplit.Defunct {
 			}
 
 			if (Model != null) {
-				if (Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0) {
+				if (Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0 && !mem.IsArcadePlay()) {
 					maxSpeed = 160f;
 					mem.SetMax(160);
 				} else if (maxSpeed != 80f) {
@@ -59,7 +59,8 @@ namespace LiveSplit.Defunct {
 		private void HandleSplits() {
 			bool shouldSplit = false;
 
-			float y = mem.CurrentPlayerY();
+			Vector pos = mem.CurrentPlayerPos();
+			float y = pos.Y;
 			if (currentSplit == 0) {
 				if (state == 0 && mem.SceneToLoad() == "Menu_RA") {
 					state++;
