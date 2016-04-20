@@ -18,6 +18,7 @@ namespace LiveSplit.Defunct {
 		private int state = 0;
 		private bool hasLog = false;
 		private int lastLogCheck = 0;
+		private int platinumCount = 0;
 		internal static string[] keys = { "CurrentSplit", "State" };
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
@@ -82,10 +83,15 @@ namespace LiveSplit.Defunct {
 					case 9: shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
 					case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
 					case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9933; break;
+					default:
+						int currentPlatnium = mem.PlatinumCount();
+						shouldSplit = currentPlatnium != platinumCount;
+						platinumCount = currentPlatnium;
+						break;
 				}
 			}
 
-			HandleSplit(shouldSplit, currentSplit > 0 && string.IsNullOrEmpty(mem.CurrentLevelName()));
+			HandleSplit(shouldSplit, currentSplit > 0 && currentSplit < 12 && string.IsNullOrEmpty(mem.CurrentLevelName()));
 		}
 		private void HandleSplit(bool shouldSplit, bool shouldReset = false) {
 			if (currentSplit > 0 && shouldReset) {
@@ -146,6 +152,7 @@ namespace LiveSplit.Defunct {
 		public void OnReset(object sender, TimerPhase e) {
 			currentSplit = 0;
 			state = 0;
+			platinumCount = 1;
 			Model.CurrentState.IsGameTimePaused = true;
 			WriteLog("---------Reset----------------------------------");
 		}
