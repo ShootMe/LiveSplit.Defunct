@@ -71,27 +71,34 @@ namespace LiveSplit.Defunct {
 					shouldSplit = true;
 				}
 			} else if (Model.CurrentState.CurrentPhase == TimerPhase.Running) {
-				switch (currentSplit) {
-					case 1: shouldSplit = mem.CurrentSceneName() == "BadGrasslands_01" && y >= 125 && y < 130; break;
-					case 2: shouldSplit = mem.CurrentSceneName() == "GoodGrasslands_01" && y >= 1941 && y < 2000; break;
-					case 3: shouldSplit = mem.CurrentSceneName() == "Forest_01" && y >= 5886 && y < 5940; break;
-					case 4: shouldSplit = mem.CurrentSceneName() == "Slope_01" && y >= 10078 && y < 10130; break;
-					case 5: shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && y >= -304 && y < -295; break;
-					case 6: shouldSplit = y >= 5741; break;
-					case 7: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Race_01" && y >= 748 && y < 770; break;
-					case 8: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Oasis_01" && y >= 8150 && y < 8200; break;
-					case 9: shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
-					case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
-					case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9933; break;
-					default:
-						int currentPlatnium = mem.PlatinumCount();
-						shouldSplit = currentPlatnium != platinumCount;
-						platinumCount = currentPlatnium;
-						break;
+				if (Model.CurrentState.Run.Count <= 11) {
+					switch (currentSplit) {
+						case 1: shouldSplit = mem.CurrentSceneName() == "BadGrasslands_01" && y >= 125 && y < 130; break;
+						case 2: shouldSplit = mem.CurrentSceneName() == "GoodGrasslands_01" && y >= 1941 && y < 2000; break;
+						case 3: shouldSplit = mem.CurrentSceneName() == "Forest_01" && y >= 5886 && y < 5940; break;
+						case 4: shouldSplit = mem.CurrentSceneName() == "Slope_01" && y >= 10078 && y < 10130; break;
+						case 5: shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && y >= -304 && y < -295; break;
+						case 6: shouldSplit = y >= 5741; break;
+						case 7: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Race_01" && y >= 748 && y < 770; break;
+						case 8: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Oasis_01" && y >= 8150 && y < 8200; break;
+						case 9: shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
+						case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
+						case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9933; break;
+					}
+				} else {
+					switch (currentSplit) {
+						case 1:
+							shouldSplit = mem.IsArcadePlay() && mem.SceneToLoad() != "Menu_RA"; break;
+						default:
+							int currentPlatnium = mem.PlatinumCount();
+							shouldSplit = currentPlatnium > 1 && currentPlatnium != platinumCount;
+							platinumCount = currentPlatnium;
+							break;
+					}
 				}
 			}
 
-			HandleSplit(shouldSplit, currentSplit > 0 && currentSplit < 12 && string.IsNullOrEmpty(mem.CurrentLevelName()));
+			HandleSplit(shouldSplit, currentSplit > 0 && Model.CurrentState.Run.Count <= 11 && string.IsNullOrEmpty(mem.CurrentLevelName()));
 		}
 		private void HandleSplit(bool shouldSplit, bool shouldReset = false) {
 			if (currentSplit > 0 && shouldReset) {
