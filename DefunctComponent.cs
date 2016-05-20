@@ -22,7 +22,6 @@ namespace LiveSplit.Defunct {
 		internal static string[] keys = { "CurrentSplit", "State" };
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
-		private float maxSpeed = 80f;
 
 		public DefunctComponent() {
 			mem = new DefunctMemory();
@@ -44,18 +43,11 @@ namespace LiveSplit.Defunct {
 				manager.Invoke((Action)delegate () { manager.Show(); });
 			}
 
+			LogValues();
+
 			if (Model != null) {
-				if (Model.CurrentState.Run.CategoryName.IndexOf("160", StringComparison.OrdinalIgnoreCase) >= 0 && !mem.IsArcadePlay()) {
-					maxSpeed = 160f;
-					mem.SetMax(160);
-				} else if (maxSpeed != 80f) {
-					maxSpeed = 80f;
-					mem.SetMax(80);
-				}
 				HandleSplits();
 			}
-
-			LogValues();
 		}
 		private void HandleSplits() {
 			bool shouldSplit = false;

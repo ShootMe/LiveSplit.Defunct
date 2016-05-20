@@ -35,7 +35,6 @@ namespace LiveSplit.Defunct {
 			if (this.InvokeRequired) {
 				this.Invoke((Action)UpdateValues);
 			} else if (this.Visible && Memory != null && Memory.HookProcess()) {
-				Memory.UnlockAllLevels();
 				string level = Memory.CurrentLevelName();
 				float x = Memory.CurrentCPX();
 				float y = Memory.CurrentCPY();
