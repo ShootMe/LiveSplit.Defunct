@@ -19,7 +19,7 @@ namespace LiveSplit.Defunct {
 		private bool hasLog = false;
 		private int lastLogCheck = 0;
 		private int platinumCount = 0;
-		internal static string[] keys = { "CurrentSplit", "State" };
+		internal static string[] keys = { "CurrentSplit", "State", "SceneName", "SceneToLoad", "IsArcade", "PlatniumCount" };
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
 
@@ -78,6 +78,7 @@ namespace LiveSplit.Defunct {
 						case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9933; break;
 					}
 				} else {
+					mem.UnlockAllLevels();
 					switch (currentSplit) {
 						case 1:
 							shouldSplit = mem.IsArcadePlay() && mem.SceneToLoad() != "Menu_RA"; break;
@@ -111,7 +112,7 @@ namespace LiveSplit.Defunct {
 			}
 			lastLogCheck--;
 
-			if (hasLog) {
+			if (hasLog || !Console.IsOutputRedirected) {
 				string prev = "", curr = "";
 				foreach (string key in keys) {
 					prev = currentValues[key];
@@ -119,6 +120,10 @@ namespace LiveSplit.Defunct {
 					switch (key) {
 						case "CurrentSplit": curr = currentSplit.ToString(); break;
 						case "State": curr = state.ToString(); break;
+						case "SceneName": curr = mem.CurrentSceneName(); break;
+						case "SceneToLoad": curr = mem.SceneToLoad(); break;
+						case "IsArcade": curr = mem.IsArcadePlay().ToString(); break;
+						case "PlatniumCount": curr = mem.PlatinumCount().ToString(); break;
 						default: curr = ""; break;
 					}
 
@@ -184,10 +189,13 @@ namespace LiveSplit.Defunct {
 			WriteLog(DateTime.Now.ToString(@"HH\:mm\:ss.fff") + " | " + Model.CurrentState.CurrentTime.RealTime.Value.ToString("G").Substring(3, 11) + ": CurrentSplit: " + currentSplit.ToString().PadLeft(24, ' '));
 		}
 		private void WriteLog(string data) {
-			if (hasLog) {
-				Console.WriteLine(data);
-				using (StreamWriter wr = new StreamWriter("_Defunct.log", true)) {
-					wr.WriteLine(data);
+			if (hasLog || !Console.IsOutputRedirected) {
+				if (Console.IsOutputRedirected) {
+					using (StreamWriter wr = new StreamWriter("_Defunct.log", true)) {
+						wr.WriteLine(data);
+					}
+				} else {
+					Console.WriteLine(data);
 				}
 			}
 		}

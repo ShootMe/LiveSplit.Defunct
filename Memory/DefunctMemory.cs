@@ -8,6 +8,7 @@ namespace LiveSplit.Defunct.Memory {
 		private float[] junkY = { 6039.27f, 6288.26f, 6407.79f, 6441.79f, 6484.88f, 6676.19f, 6999.13f, 7093.40f, 7325.27f };
 		public Process Program { get; set; }
 		public bool IsHooked { get; set; } = false;
+		private DateTime lastHooked;
 
 		public DefunctMemory() {
 			currentActiveCp = new ProgramPointer(this, "CurrentActiveCp") { IsStatic = false };
@@ -19,10 +20,27 @@ namespace LiveSplit.Defunct.Memory {
 			saveMain = new ProgramPointer(this, "SaveHandlerMain") { IsStatic = false };
 			saveArcade = new ProgramPointer(this, "SaveHandlerArcade") { IsStatic = false };
 			isArcadePlay = new ProgramPointer(this, "IsArcadePlay") { IsStatic = false };
+			lastHooked = DateTime.MinValue;
 		}
 		public float CurrentCPX() {
 			//CheckPointSystem.instance.currentActiveCp.midPos.X
 			return currentActiveCp.Read<float>(0x00, 0x78);
+		}
+		public void UnlockAllLevels() {
+			if (saveMain.Value != IntPtr.Zero) {
+				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
+				for (int i = 0; i < size; i++) {
+					IntPtr level = saveMain.Read<IntPtr>(0x00, 0x10, 0x10 + i * 4);
+					IntPtr nextLevel = saveMain.Read<IntPtr>(0x00, 0x10, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
+					bool unlocked = Program.Read<bool>(level, 0x14);
+					bool completed = Program.Read<bool>(level, 0x15);
+					bool nextUnlocked = Program.Read<bool>(nextLevel, 0x14);
+					bool nextCompleted = Program.Read<bool>(nextLevel, 0x15);
+					if ((unlocked ^ completed) || (!(unlocked & completed) && (nextUnlocked | nextCompleted))) {
+						Program.Write<int>(level, 16843009, 0x14);
+					}
+				}
+			}
 		}
 		public int PlatinumCount() {
 			int count = 0;
@@ -162,15 +180,15 @@ namespace LiveSplit.Defunct.Memory {
 		}
 
 		public bool HookProcess() {
-			if (Program == null || Program.HasExited) {
+			if ((Program == null || Program.HasExited) && DateTime.Now > lastHooked.AddSeconds(1)) {
+				lastHooked = DateTime.Now;
 				Process[] processes = Process.GetProcessesByName("Defunct_x86");
 				Program = processes.Length == 0 ? null : processes[0];
-				if (processes.Length == 0 || Program.HasExited) {
-					IsHooked = false;
-					return IsHooked;
-				}
-
 				IsHooked = true;
+			}
+
+			if (Program == null || Program.HasExited) {
+				IsHooked = false;
 			}
 
 			return IsHooked;
