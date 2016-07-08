@@ -19,7 +19,8 @@ namespace LiveSplit.Defunct {
 		private bool hasLog = false;
 		private int lastLogCheck = 0;
 		private int platinumCount = 0;
-		internal static string[] keys = { "CurrentSplit", "State", "SceneName", "SceneToLoad", "IsArcade", "PlatniumCount" };
+		private float lastTime = 0;
+		internal static string[] keys = { "CurrentSplit", "State", "SceneName", "SceneToLoad", "IsArcade", "PlatniumCount", "ArcadeTimer", "TimerOn", "IsPaused" };
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
 
@@ -54,38 +55,56 @@ namespace LiveSplit.Defunct {
 
 			Vector pos = mem.CurrentPlayerPos();
 			float y = pos.Y;
+			string sceneToLoad = mem.SceneToLoad();
+			string currentScene = mem.CurrentSceneName();
 			if (currentSplit == 0) {
-				if (state == 0 && mem.SceneToLoad() == "Menu_RA") {
+				if (state == 0 && sceneToLoad == "Menu_RA") {
 					state++;
-				} else if (state == 1 && mem.CurrentSceneName() == "Cargo_Ship_01" && y == 0) {
+				} else if (state == 1 && currentScene == "Cargo_Ship_01" && y == 0) {
 					state++;
-				} else if (state == 2 && mem.CurrentSceneName() == "Cargo_Ship_01" && y < -1400) {
+				} else if (state == 2 && currentScene == "Cargo_Ship_01" && y < -1400) {
 					shouldSplit = true;
 				}
 			} else if (Model.CurrentState.CurrentPhase == TimerPhase.Running) {
 				if (Model.CurrentState.Run.Count <= 11) {
 					switch (currentSplit) {
-						case 1: shouldSplit = mem.CurrentSceneName() == "BadGrasslands_01" && y >= 125 && y < 130; break;
-						case 2: shouldSplit = mem.CurrentSceneName() == "GoodGrasslands_01" && y >= 1941 && y < 2000; break;
-						case 3: shouldSplit = mem.CurrentSceneName() == "Forest_01" && y >= 5886 && y < 5940; break;
-						case 4: shouldSplit = mem.CurrentSceneName() == "Slope_01" && y >= 10078 && y < 10130; break;
-						case 5: shouldSplit = mem.CurrentSceneName() == "Wasteland_01" && y >= -304 && y < -295; break;
+						case 1: shouldSplit = currentScene == "BadGrasslands_01" && y >= 125 && y < 130; break;
+						case 2: shouldSplit = currentScene == "GoodGrasslands_01" && y >= 1941 && y < 2000; break;
+						case 3: shouldSplit = currentScene == "Forest_01" && y >= 5886 && y < 5940; break;
+						case 4: shouldSplit = currentScene == "Slope_01" && y >= 10078 && y < 10130; break;
+						case 5: shouldSplit = currentScene == "Wasteland_01" && y >= -304 && y < -295; break;
 						case 6: shouldSplit = y >= 5741; break;
-						case 7: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Race_01" && y >= 748 && y < 770; break;
-						case 8: shouldSplit = mem.CurrentSceneName() == "Wasteland_01_Oasis_01" && y >= 8150 && y < 8200; break;
-						case 9: shouldSplit = mem.CurrentSceneName() == "Ravine_01" && y >= 137 && y < 190; break;
-						case 10: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
-						case 11: shouldSplit = mem.CurrentSceneName() == "Finale_AlienShip_02" && y >= 9933; break;
+						case 7: shouldSplit = currentScene == "Wasteland_01_Race_01" && y >= 748 && y < 770; break;
+						case 8: shouldSplit = currentScene == "Wasteland_01_Oasis_01" && y >= 8150 && y < 8200; break;
+						case 9: shouldSplit = currentScene == "Ravine_01" && y >= 137 && y < 190; break;
+						case 10: shouldSplit = currentScene == "Finale_AlienShip_02" && y >= 3967 && y < 4010; break;
+						case 11: shouldSplit = currentScene == "Finale_AlienShip_02" && y >= 9933; break;
 					}
 				} else {
 					mem.UnlockAllLevels();
+					if (sceneToLoad == "Menu_RA") {
+						mem.ResetTimer();
+					}
 					switch (currentSplit) {
 						case 1:
-							shouldSplit = mem.IsArcadePlay() && mem.SceneToLoad() != "Menu_RA"; break;
+							shouldSplit = pos.X >= 895 && pos.X <= 915 && y >= 1153 && y <= 1165 && pos.Z >= -8 && pos.Z <= 8;
+							break;
 						default:
+							float currentTime = mem.CurrentArcadeTime();
+							if (currentTime != lastTime && sceneToLoad != "Menu_RA" && mem.IsArcadePlay() && mem.TimerOn()) {
+								state = 1;
+								Model.CurrentState.IsGameTimePaused = false;
+							} else if (state > 1) {
+								Model.CurrentState.IsGameTimePaused = true;
+							} else if (state > 0) {
+								state++;
+							}
+
 							int currentPlatnium = mem.PlatinumCount();
 							shouldSplit = currentPlatnium > 1 && currentPlatnium != platinumCount;
 							platinumCount = currentPlatnium;
+
+							lastTime = currentTime;
 							break;
 					}
 				}
@@ -99,6 +118,7 @@ namespace LiveSplit.Defunct {
 			} else if (shouldSplit) {
 				if (currentSplit == 0) {
 					Model.Start();
+					Model.CurrentState.IsGameTimePaused = false;
 				} else {
 					Model.Split();
 				}
@@ -124,6 +144,9 @@ namespace LiveSplit.Defunct {
 						case "SceneToLoad": curr = mem.SceneToLoad(); break;
 						case "IsArcade": curr = mem.IsArcadePlay().ToString(); break;
 						case "PlatniumCount": curr = mem.PlatinumCount().ToString(); break;
+						case "ArcadeTimer": curr = mem.CurrentArcadeTime().ToString("0"); break;
+						case "TimerOn": curr = mem.TimerOn().ToString(); break;
+						case "IsPaused": curr = mem.IsPaused().ToString(); break;
 						default: curr = ""; break;
 					}
 
