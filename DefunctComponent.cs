@@ -70,7 +70,7 @@ namespace LiveSplit.Defunct {
 					switch (currentSplit) {
 						case 1: shouldSplit = currentScene == "BadGrasslands_01" && y >= 125 && y < 130; break;
 						case 2: shouldSplit = currentScene == "GoodGrasslands_01" && y >= 1941 && y < 2000; break;
-						case 3: shouldSplit = currentScene == "Forest_01" && y >= 5886 && y < 5940; break;
+						case 3: shouldSplit = (currentScene == "GoodGrasslands_01" || currentScene == "Forest_01") && y >= 5886 && y < 5940; break;
 						case 4: shouldSplit = currentScene == "Slope_01" && y >= 10078 && y < 10130; break;
 						case 5: shouldSplit = currentScene == "Wasteland_01" && y >= -304 && y < -295; break;
 						case 6: shouldSplit = y >= 5741; break;
