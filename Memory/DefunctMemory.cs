@@ -32,8 +32,8 @@ namespace LiveSplit.Defunct.Memory {
 			if (saveMain.Value != IntPtr.Zero) {
 				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
 				for (int i = 0; i < size; i++) {
-					IntPtr level = saveMain.Read<IntPtr>(0x00, 0x10, 0x10 + i * 4);
-					IntPtr nextLevel = saveMain.Read<IntPtr>(0x00, 0x10, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
+					IntPtr level = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + i * 4);
+					IntPtr nextLevel = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
 					bool unlocked = Program.Read<bool>(level, 0x14);
 					bool completed = Program.Read<bool>(level, 0x15);
 					bool nextUnlocked = Program.Read<bool>(nextLevel, 0x14);
@@ -64,13 +64,13 @@ namespace LiveSplit.Defunct.Memory {
 			if (saveMain.Value != IntPtr.Zero) {
 				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveMain.Read<int>(0x00, 0x10, 0x10 + i * 4);
+					IntPtr level = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + i * 4);
 					int medal = Program.Read<int>(level, 0x0c);
 					if (medal == 3) { count++; }
 				}
 				size = saveArcade.Read<int>(0x00, 0x10, 0x0c);
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveArcade.Read<int>(0x00, 0x10, 0x10 + i * 4);
+					IntPtr level = (IntPtr)saveArcade.Read<uint>(0x00, 0x10, 0x10 + i * 4);
 					int medal = Program.Read<int>(level, 0x0c);
 					if (medal == 3) { count++; }
 				}
@@ -91,10 +91,10 @@ namespace LiveSplit.Defunct.Memory {
 				int totalCount = 0;
 
 				if (lvlIndex == 5) {
-					IntPtr areas = (IntPtr)currentAreas.Read<int>(0x00);
+					IntPtr areas = (IntPtr)currentAreas.Read<uint>(0x00);
 					int areaSize = Program.Read<int>(areas, 0x0c);
 					if (areaSize > 0) {
-						IntPtr cps = (IntPtr)Program.Read<int>(areas, 0x08, 0x10 + (areaSize - 1) * 4, 0x10);
+						IntPtr cps = (IntPtr)Program.Read<uint>(areas, 0x08, 0x10 + (areaSize - 1) * 4, 0x10);
 						areaSize = Program.Read<int>(cps, 0x0c);
 						if (areaSize == 9) { lvlIndex = 6; }
 					}
@@ -105,7 +105,7 @@ namespace LiveSplit.Defunct.Memory {
 				}
 
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveMain.Read<int>(0x00, 0x10, 0x10 + i * 4);
+					IntPtr level = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + i * 4);
 					int length = Program.Read<int>(level, 0x08, 0x0c);
 					int count = 0;
 					for (int j = 0; j < length; j++) {
@@ -131,10 +131,10 @@ namespace LiveSplit.Defunct.Memory {
 			return currentActiveCp.Read<float>(0x00, 0x40);
 		}
 		public string CurrentCPName(float x, float y) {
-			IntPtr areas = (IntPtr)currentAreas.Read<int>(0x00);
+			IntPtr areas = (IntPtr)currentAreas.Read<uint>(0x00);
 			int listSize = Program.Read<int>(areas, 0x0c);
 			if (listSize > 0) {
-				IntPtr cps = (IntPtr)Program.Read<int>(areas, 0x08, 0x10 + (listSize - 1) * 4, 0x10);
+				IntPtr cps = (IntPtr)Program.Read<uint>(areas, 0x08, 0x10 + (listSize - 1) * 4, 0x10);
 				listSize = Program.Read<int>(cps, 0x0c);
 				if (listSize == 9) {
 					if (areas != IntPtr.Zero) {
@@ -179,7 +179,7 @@ namespace LiveSplit.Defunct.Memory {
 			if (preloadLevel.Value != IntPtr.Zero) {
 				int index = preloadLevel.Read<int>();
 				if (index >= 0) {
-					IntPtr lvl = (IntPtr)levelHandler.Read<int>(0x10, 0x08, 0x10 + (4 * index), 0x08);
+					IntPtr lvl = (IntPtr)levelHandler.Read<uint>(0x10, 0x08, 0x10 + (4 * index), 0x08);
 					return Program.Read(lvl);
 				}
 			}
@@ -189,7 +189,7 @@ namespace LiveSplit.Defunct.Memory {
 			if (preloadLevel.Value != IntPtr.Zero) {
 				int index = preloadLevel.Read<int>();
 				if (index >= 0) {
-					IntPtr lvl = (IntPtr)levelHandler.Read<int>(0x10, 0x08, 0x10 + (4 * index), 0x0c);
+					IntPtr lvl = (IntPtr)levelHandler.Read<uint>(0x10, 0x08, 0x10 + (4 * index), 0x0c);
 					return Program.Read(lvl);
 				}
 			}
@@ -422,9 +422,9 @@ namespace LiveSplit.Defunct.Memory {
 			bool is64bit = Memory.Program.Is64Bit();
 			IntPtr p = IntPtr.Zero;
 			if (is64bit) {
-				p = (IntPtr)Memory.Program.Read<long>(Value, offsets);
+				p = (IntPtr)Memory.Program.Read<ulong>(Value, offsets);
 			} else {
-				p = (IntPtr)Memory.Program.Read<int>(Value, offsets);
+				p = (IntPtr)Memory.Program.Read<uint>(Value, offsets);
 			}
 			return Memory.Program.Read(p);
 		}
@@ -466,16 +466,13 @@ namespace LiveSplit.Defunct.Memory {
 				pointer = GetVersionedFunctionPointer();
 				if (pointer != IntPtr.Zero) {
 					bool is64bit = Memory.Program.Is64Bit();
+					pointer = (IntPtr)Memory.Program.Read<uint>(pointer);
 					if (AutoDeref) {
 						if (is64bit) {
-							pointer = (IntPtr)Memory.Program.Read<long>(pointer, 0, 0);
+							pointer = (IntPtr)Memory.Program.Read<ulong>(pointer);
 						} else {
-							pointer = (IntPtr)Memory.Program.Read<int>(pointer, 0, 0);
+							pointer = (IntPtr)Memory.Program.Read<uint>(pointer);
 						}
-					} else if (is64bit) {
-						pointer = (IntPtr)Memory.Program.Read<long>(pointer, 0);
-					} else {
-						pointer = (IntPtr)Memory.Program.Read<int>(pointer, 0);
 					}
 				}
 			}

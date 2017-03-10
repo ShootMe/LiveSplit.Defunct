@@ -110,7 +110,7 @@ namespace LiveSplit.Defunct {
 				}
 			}
 
-			HandleSplit(shouldSplit, currentSplit > 0 && Model.CurrentState.Run.Count <= 11 && string.IsNullOrEmpty(mem.CurrentLevelName()));
+			HandleSplit(shouldSplit);
 		}
 		private void HandleSplit(bool shouldSplit, bool shouldReset = false) {
 			if (currentSplit > 0 && shouldReset) {
