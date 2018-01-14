@@ -10,4 +10,4 @@ Autosplitter for the game Defunct
 - Open livesplit
 - Edit your splits
 - Set game as Defunct
-- Click activte autosplitter
+- Click activate autosplitter

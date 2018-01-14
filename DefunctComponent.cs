@@ -123,7 +123,6 @@ namespace LiveSplit.Defunct {
 			} else if (shouldSplit) {
 				if (currentSplit == 0) {
 					Model.Start();
-					Model.CurrentState.IsGameTimePaused = false;
 				} else {
 					Model.Split();
 				}
@@ -198,7 +197,7 @@ namespace LiveSplit.Defunct {
 		public void OnStart(object sender, EventArgs e) {
 			currentSplit++;
 			state = 0;
-			Model.CurrentState.IsGameTimePaused = true;
+			Model.CurrentState.IsGameTimePaused = false;
 			WriteLog("---------New Game-------------------------------");
 		}
 		public void OnUndoSplit(object sender, EventArgs e) {
@@ -214,7 +213,6 @@ namespace LiveSplit.Defunct {
 		public void OnSplit(object sender, EventArgs e) {
 			currentSplit++;
 			state = 0;
-			Model.CurrentState.IsGameTimePaused = true;
 			WriteLog(DateTime.Now.ToString(@"HH\:mm\:ss.fff") + " | " + Model.CurrentState.CurrentTime.RealTime.Value.ToString("G").Substring(3, 11) + ": CurrentSplit: " + currentSplit.ToString().PadLeft(24, ' '));
 		}
 		private void WriteLog(string data) {
