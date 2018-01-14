@@ -1,51 +1,53 @@
 ﻿using LiveSplit.Defunct.Memory;
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 namespace LiveSplit.Defunct {
 	public partial class DefunctManager : Form {
 		public DefunctMemory Memory { get; set; }
-		public DefunctComponent Component { get; set; }
+		private Thread getValuesThread = null;
 		public DefunctManager() {
 			InitializeComponent();
-			Visible = false;
-			Thread t = new Thread(UpdateLoop);
-			t.IsBackground = true;
-			t.Start();
+			Text = "Defunct Manager " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
+			getValuesThread = new Thread(UpdateLoop);
+			getValuesThread.IsBackground = true;
+			getValuesThread.Start();
 		}
 
 		private void DefunctManager_FormClosing(object sender, FormClosingEventArgs e) {
 			e.Cancel = Memory != null;
-			if (e.Cancel && this.WindowState != FormWindowState.Minimized) {
-				this.WindowState = FormWindowState.Minimized;
+			if (e.Cancel) {
+				if (this.WindowState != FormWindowState.Minimized) {
+					this.WindowState = FormWindowState.Minimized;
+				}
+			} else if (getValuesThread != null) {
+				getValuesThread = null;
 			}
 		}
-
 		private void UpdateLoop() {
-			try {
-				while (true) {
-					try {
-						UpdateValues();
-					} catch { }
-					Thread.Sleep(33);
-				}
-			} catch { }
+			while (getValuesThread != null) {
+				try {
+					UpdateValues();
+					Thread.Sleep(30);
+				} catch { }
+			}
 		}
 		public void UpdateValues() {
 			if (this.InvokeRequired) {
 				this.Invoke((Action)UpdateValues);
-			} else if (this.Visible && Memory != null && Memory.HookProcess()) {
+			} else if (Memory != null && Memory.HookProcess()) {
+				if (!Visible) { this.Show(); }
+
 				string level = Memory.CurrentLevelName();
-				float x = Memory.CurrentCPX();
-				float y = Memory.CurrentCPY();
-				lblCheckpoint.Text = string.IsNullOrEmpty(level) ? "" : Memory.CurrentCPName(x, y) + ": Power(" + Memory.CurrentCPStartStrength() + ")";
+				Vector cp = Memory.CurrentCP();
+				lblCheckpoint.Text = string.IsNullOrEmpty(level) ? "" : Memory.CurrentCPName(level, cp.X, cp.Y) + ": Power(" + cp.M + ")";
 				Vector pos = Memory.CurrentPlayerPos();
 				lblPos.Text = "Position: (" + pos.X.ToString("0.00") + ", " + pos.Z.ToString("0.00") + ", " + pos.Y.ToString("0.00") + ")";
-				Vector cv = Memory.CurrentVelocity();
-				lblVelocity.Text = "Velocity: " + cv.ToString();
+				lblVelocity.Text = "Velocity: " + Memory.CurrentVelocity().ToString();
 				int[] collectibles = Memory.Collectibles();
 				lblCollectibles.Text = "Collectibles: (" + collectibles[1] + "/" + collectibles[0] + ") (" + collectibles[2] + "/40)";
-			} else if (Memory == null && this.Visible) {
+			} else if (this.Visible) {
 				this.Hide();
 			}
 		}

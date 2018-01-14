@@ -1,13 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <updates>
+	<update version="1.6.0">
+		<files>
+			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
+		</files>
+		<changelog>
+			<change> Update for game, and performace </change>
+		</changelog>
+	</update>
 	<update version="1.5.5">
 		<files>
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Fix memory reading issues, remove auto reset for races
-			</change>
+			<change> Fix memory reading issues, remove auto reset for races </change>
 		</changelog>
 	</update>
 	<update version="1.5.0">
@@ -15,9 +21,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Remove need for LiveSplit32
-			</change>
+			<change> Remove need for LiveSplit32 </change>
 		</changelog>
 	</update>
 	<update version="1.4.3">
@@ -25,9 +29,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Update split point for 160cc
-			</change>
+			<change> Update split point for 160cc </change>
 		</changelog>
 	</update>
 	<update version="1.4.2">
@@ -35,9 +37,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Fix pointers from new game patch
-			</change>
+			<change> Fix pointers from new game patch </change>
 		</changelog>
 	</update>
 	<update version="1.4.1">
@@ -45,9 +45,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Change plat% to use game time
-			</change>
+			<change> Change plat% to use game time </change>
 		</changelog>
 	</update>
 	<update version="1.4.0">
@@ -55,9 +53,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Fix plat% and cleanup code
-			</change>
+			<change> Fix plat% and cleanup code </change>
 		</changelog>
 	</update>
 	<update version="1.3.0">
@@ -65,9 +61,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Remove features no longer needed with new patch
-			</change>
+			<change> Remove features no longer needed with new patch </change>
 		</changelog>
 	</update>
 	<update version="1.2.3">
@@ -75,9 +69,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Added ability to split Platinum%
-			</change>
+			<change> Added ability to split Platinum% </change>
 		</changelog>
 	</update>
 	<update version="1.2.2">
@@ -85,9 +77,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Added ability to split 100%
-			</change>
+			<change> Added ability to split 100% </change>
 		</changelog>
 	</update>
 	<update version="1.2.1">
@@ -95,9 +85,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Make sure 160cc is only in normal runs. Position shows X,Z,Y now.
-			</change>
+			<change> Make sure 160cc is only in normal runs. Position shows X,Z,Y now. </change>
 		</changelog>
 	</update>
 	<update version="1.2.0">
@@ -105,9 +93,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				fixed collectible counts on info screen.
-			</change>
+			<change> fixed collectible counts on info screen. </change>
 		</changelog>
 	</update>
 	<update version="1.1.6">
@@ -115,9 +101,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Added collectible counts to info screen. Also fixed bug in game that locked you out of Oasis/Rockbottom.
-			</change>
+			<change> Added collectible counts to info screen. Also fixed bug in game that locked you out of Oasis/Rockbottom. </change>
 		</changelog>
 	</update>
 	<update version="1.1.5">
@@ -125,9 +109,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Fix 160cc
-			</change>
+			<change> Fix 160cc </change>
 		</changelog>
 	</update>
 	<update version="1.1.4">
@@ -135,9 +117,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Cleanup code, and try and fix timer not starting on intial load.
-			</change>
+			<change> Cleanup code, and try and fix timer not starting on intial load. </change>
 		</changelog>
 	</update>
 	<update version="1.1.3">
@@ -145,9 +125,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Change to start timer when you gain control first vs start from new game.
-			</change>
+			<change> Change to start timer when you gain control first vs start from new game. </change>
 		</changelog>
 	</update>
 	<update version="1.1.2">
@@ -155,9 +133,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Added 160cc logic. Make category name contain 160 in it and it will set the max speed at 160 instead of 80.
-			</change>
+			<change> Added 160cc logic. Make category name contain 160 in it and it will set the max speed at 160 instead of 80. </change>
 		</changelog>
 	</update>
 	<update version="1.1.1">
@@ -165,9 +141,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Fix checkpoints in junkyard and first split
-			</change>
+			<change> Fix checkpoints in junkyard and first split </change>
 		</changelog>
 	</update>
 	<update version="1.1.0">
@@ -175,9 +149,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Cleanup
-			</change>
+			<change> Cleanup </change>
 		</changelog>
 	</update>
 	<update version="1.0.0">
@@ -185,9 +157,7 @@
 			<file path="Components/LiveSplit.Defunct.dll" status="changed"/>
 		</files>
 		<changelog>
-			<change>
-				Initial Commit
-			</change>
+			<change> Initial Commit </change>
 		</changelog>
 	</update>
 </updates>

@@ -1,18 +1,28 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 namespace LiveSplit.Defunct {
 	public class DefunctTest {
-		private static DefunctComponent comp = new DefunctComponent();
+		private static DefunctComponent comp = new DefunctComponent(null);
+		[STAThread]
 		public static void Main(string[] args) {
-			Thread t = new Thread(GetVals);
-			t.IsBackground = true;
-			t.Start();
-			System.Windows.Forms.Application.Run();
+			try {
+				Thread test = new Thread(GetVals);
+				test.IsBackground = true;
+				test.Start();
+				System.Windows.Forms.Application.Run();
+			} catch (Exception ex) {
+				Console.WriteLine(ex.ToString());
+			}
 		}
 		private static void GetVals() {
-			while (true) {
-				comp.GetValues();
+			try {
+				while (true) {
+					comp.GetValues();
 
-				Thread.Sleep(5);
+					Thread.Sleep(10);
+				}
+			} catch (Exception ex) {
+				Console.WriteLine(ex);
 			}
 		}
 	}

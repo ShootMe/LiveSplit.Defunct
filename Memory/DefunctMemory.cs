@@ -1,9 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 namespace LiveSplit.Defunct.Memory {
 	public class DefunctMemory {
-		private ProgramPointer currentActiveCp, currentAreas, levelHandler, preloadLevel, playerHandler, sceneToLoad, saveMain, saveArcade, isArcadePlay, arcadeTimer, pausMGR;
+		private static ProgramPointer levelHandler = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "83C41085C074248BF785FF74158B068B008B40088B400C3D????????0F85????????B8", 35));
+		private static ProgramPointer checkPointSystem = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "8BD139128B490C4983EC0851503900E8????????83C41083EC0C503900E8", -4));
+		private static ProgramPointer preloadLevel = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D", 8));
+		private static ProgramPointer playerHandler = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC575681EC????????8B7D088B05????????83EC086A0050E8", 16));
+		private static ProgramPointer saveHandler = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC5783EC148B05????????83EC086A0050E8????????83C41085C00F84????????83EC0C68", 9));
+		private static ProgramPointer arcadeTimer = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC5783EC048B7D08B8????????89388B05????????83EC086A0050", 11));
 		private float[] junkX = { 992.36f, 725.25f, 540.18f, 1513.69f, 1082.25f, 422.82f, 1494.81f, 692.56f, 1559.98f };
 		private float[] junkY = { 6039.27f, 6288.26f, 6407.79f, 6441.79f, 6484.88f, 6676.19f, 6999.13f, 7093.40f, 7325.27f };
 		public Process Program { get; set; }
@@ -11,29 +15,25 @@ namespace LiveSplit.Defunct.Memory {
 		private DateTime lastHooked;
 
 		public DefunctMemory() {
-			currentActiveCp = new ProgramPointer(this, MemPointer.CurrentActiveCp) { AutoDeref = false };
-			currentAreas = new ProgramPointer(this, MemPointer.CurrentAreas) { AutoDeref = false };
-			levelHandler = new ProgramPointer(this, MemPointer.LevelHandler);
-			preloadLevel = new ProgramPointer(this, MemPointer.PreloadLevel) { AutoDeref = false };
-			sceneToLoad = new ProgramPointer(this, MemPointer.SceneToLoad) { AutoDeref = false };
-			playerHandler = new ProgramPointer(this, MemPointer.PlayerHandler) { AutoDeref = false };
-			saveMain = new ProgramPointer(this, MemPointer.SaveHandlerMain) { AutoDeref = false };
-			saveArcade = new ProgramPointer(this, MemPointer.SaveHandlerArcade) { AutoDeref = false };
-			isArcadePlay = new ProgramPointer(this, MemPointer.IsArcadePlay) { AutoDeref = false };
-			arcadeTimer = new ProgramPointer(this, MemPointer.ArcadeTimer) { AutoDeref = false };
-			pausMGR = new ProgramPointer(this, MemPointer.PausMGR) { AutoDeref = false };
 			lastHooked = DateTime.MinValue;
 		}
-		public float CurrentCPX() {
-			//CheckPointSystem.instance.currentActiveCp.midPos.X
-			return currentActiveCp.Read<float>(0x00, 0x78);
+		public Vector CurrentCP() {
+			//CheckPointSystem.currentActiveCp.midPos.X
+			float x = checkPointSystem.Read<float>(Program, -0x8, 0x74);
+			//CheckPointSystem.currentActiveCp.midPos.Y
+			float y = checkPointSystem.Read<float>(Program, -0x8, 0x78);
+			//CheckPointSystem.currentActiveCp.midPos.playerStartStrength
+			float strength = checkPointSystem.Read<float>(Program, -0x8, 0x3c);
+			return new Vector() { X = x, Y = y, M = strength };
 		}
 		public void UnlockAllLevels() {
-			if (saveMain.Value != IntPtr.Zero) {
-				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
+			if (saveHandler.GetPointer(Program) != IntPtr.Zero) {
+				//SaveHandler.s_instance.s_mainLevels.m_levelDatas
+				IntPtr mainLevels = (IntPtr)saveHandler.Read<uint>(Program, 0x0, 0x10, 0x10);
+				int size = Program.Read<int>(mainLevels, 0xc);
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + i * 4);
-					IntPtr nextLevel = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
+					IntPtr level = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + i * 4);
+					IntPtr nextLevel = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
 					bool unlocked = Program.Read<bool>(level, 0x14);
 					bool completed = Program.Read<bool>(level, 0x15);
 					bool nextUnlocked = Program.Read<bool>(nextLevel, 0x14);
@@ -44,72 +44,65 @@ namespace LiveSplit.Defunct.Memory {
 				}
 			}
 		}
-		public float CurrentArcadeTime() {
-			return arcadeTimer.Read<float>(0x00, 0x74);
-		}
-		public bool TimerOn() {
-			return arcadeTimer.Read<bool>(0x00, 0x7c);
-		}
-		public bool IsPaused() {
-			return pausMGR.Read<bool>();
-		}
-		public void ResetTimer() {
-			if (arcadeTimer.Value != IntPtr.Zero) {
-				Program.Write(arcadeTimer.Value, 0L, 0x00, 0x74);
-				Program.Write(arcadeTimer.Value, false, 0x00, 0x7c);
-			}
-		}
 		public int PlatinumCount() {
 			int count = 0;
-			if (saveMain.Value != IntPtr.Zero) {
-				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
+			if (saveHandler.GetPointer(Program) != IntPtr.Zero) {
+				//SaveHandler.s_instance.s_mainLevels.m_levelDatas
+				IntPtr mainLevels = (IntPtr)saveHandler.Read<uint>(Program, 0x0, 0x10, 0x10);
+				int size = Program.Read<int>(mainLevels, 0xc);
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + i * 4);
-					int medal = Program.Read<int>(level, 0x0c);
+					//SaveHandler.s_instance.s_mainLevels.m_levelDatas[i].m_medal
+					int medal = Program.Read<int>(mainLevels, 0x10 + i * 4, 0xc);
 					if (medal == 3) { count++; }
 				}
-				size = saveArcade.Read<int>(0x00, 0x10, 0x0c);
+
+				//SaveHandler.s_instance.s_arcadeLevels.m_levelDatas
+				IntPtr arcadeLevels = (IntPtr)saveHandler.Read<uint>(Program, 0x0, 0x14, 0x10);
+				size = Program.Read<int>(arcadeLevels, 0xc);
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveArcade.Read<uint>(0x00, 0x10, 0x10 + i * 4);
-					int medal = Program.Read<int>(level, 0x0c);
+					//SaveHandler.s_instance.s_arcadeLevels.m_levelDatas[i].m_medal
+					int medal = Program.Read<int>(arcadeLevels, 0x10 + i * 4, 0xc);
 					if (medal == 3) { count++; }
 				}
 			}
 			return count;
 		}
-		public bool IsArcadePlay() {
-			if (isArcadePlay.Value != IntPtr.Zero) {
-				return isArcadePlay.Read<bool>();
-			}
-			return false;
-		}
 		public int[] Collectibles() {
 			int[] stats = new int[3] { 0, 0, 0 };
-			if (saveMain.Value != IntPtr.Zero && preloadLevel.Value != IntPtr.Zero) {
-				int lvlIndex = preloadLevel.Read<int>();
-				int size = saveMain.Read<int>(0x00, 0x10, 0x0c);
+			if (saveHandler.GetPointer(Program) != IntPtr.Zero && preloadLevel.GetPointer(Program) != IntPtr.Zero) {
+				//PreloadLevel.s_levelIndex
+				int lvlIndex = preloadLevel.Read<int>(Program);
+
+				//SaveHandler.s_instance.s_mainLevels.m_levelDatas
+				IntPtr mainLevels = (IntPtr)saveHandler.Read<uint>(Program, 0x0, 0x10, 0x10);
+				int size = Program.Read<int>(mainLevels, 0xc);
 				int totalCount = 0;
 
 				if (lvlIndex == 5) {
-					IntPtr areas = (IntPtr)currentAreas.Read<uint>(0x00);
-					int areaSize = Program.Read<int>(areas, 0x0c);
+					//CheckPointSystem.currentAreas
+					IntPtr areas = (IntPtr)checkPointSystem.Read<uint>(Program);
+					int areaSize = Program.Read<int>(areas, 0xc);
 					if (areaSize > 0) {
-						IntPtr cps = (IntPtr)Program.Read<uint>(areas, 0x08, 0x10 + (areaSize - 1) * 4, 0x10);
-						areaSize = Program.Read<int>(cps, 0x0c);
+						//CheckPointSystem.currentAreas[areaSize-1].cps.Count
+						areaSize = Program.Read<int>(areas, 0x8, 0x10 + (areaSize - 1) * 4, 0xc, 0xc);
 						if (areaSize == 9) { lvlIndex = 6; }
 					}
 				}
 
 				if (lvlIndex >= 0) {
-					stats[0] = levelHandler.Read<int>(0x10, 0x08, 0x10 + (4 * lvlIndex), 0x1c);
+					//LevelHandler.m_mainLevels[lvlIndex].m_collectablesAmount
+					stats[0] = levelHandler.Read<int>(Program, 0x0, 0xc, 0x8, 0x10 + (4 * lvlIndex), 0x1c);
 				}
 
 				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)saveMain.Read<uint>(0x00, 0x10, 0x10 + i * 4);
-					int length = Program.Read<int>(level, 0x08, 0x0c);
+					//SaveHandler.s_instance.s_mainLevels.m_levelDatas[i]
+					IntPtr level = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + (i * 4));
+					//SaveHandler.s_instance.s_mainLevels.m_levelDatas[i].m_collectables.length
+					int length = Program.Read<int>(level, 0x8, 0xc);
 					int count = 0;
 					for (int j = 0; j < length; j++) {
-						if (Program.Read<bool>(level, 0x08, 0x10 + j)) {
+						//SaveHandler.s_instance.s_mainLevels.m_levelDatas[i].m_collectables[j]
+						if (Program.Read<bool>(level, 0x8, 0x10 + j)) {
 							count++;
 							totalCount++;
 						}
@@ -122,20 +115,34 @@ namespace LiveSplit.Defunct.Memory {
 			}
 			return stats;
 		}
-		public float CurrentCPY() {
-			//CheckPointSystem.instance.currentActiveCp.midPos.Y
-			return currentActiveCp.Read<float>(0x00, 0x7c);
+		public float CurrentArcadeTime() {
+			//ArcadeTimer.s_self.m_time
+			return arcadeTimer.Read<float>(Program, 0x0, 0x74);
 		}
-		public float CurrentCPStartStrength() {
-			//CheckPointSystem.instance.currentActiveCp.playerStartStrength
-			return currentActiveCp.Read<float>(0x00, 0x40);
+		public bool TimerOn() {
+			//ArcadeTimer.s_self.m_timerIsOn
+			return arcadeTimer.Read<bool>(Program, 0x0, 0x7c);
 		}
-		public string CurrentCPName(float x, float y) {
-			IntPtr areas = (IntPtr)currentAreas.Read<uint>(0x00);
-			int listSize = Program.Read<int>(areas, 0x0c);
+		public void ResetTimer() {
+			if (arcadeTimer.GetPointer(Program) != IntPtr.Zero) {
+				//ArcadeTimer.s_self.m_time
+				//ArcadeTimer.s_self.m_pauseTimer
+				arcadeTimer.Write<long>(Program, 0L, 0x0, 0x74);
+				//ArcadeTimer.s_self.m_timerIsOn
+				arcadeTimer.Write<bool>(Program, false, 0x0, 0x7c);
+			}
+		}
+		public bool IsArcadePlay() {
+			//PreloadLevel.s_isArcadePlay
+			return preloadLevel.Read<bool>(Program, 0x4);
+		}
+		public string CurrentCPName(string level, float x, float y) {
+			//CheckPointSystem.currentAreas
+			IntPtr areas = (IntPtr)checkPointSystem.Read<uint>(Program);
+			int listSize = Program.Read<int>(areas, 0xc);
 			if (listSize > 0) {
-				IntPtr cps = (IntPtr)Program.Read<uint>(areas, 0x08, 0x10 + (listSize - 1) * 4, 0x10);
-				listSize = Program.Read<int>(cps, 0x0c);
+				//CheckPointSystem.currentAreas[size-1].cps.Count
+				listSize = Program.Read<int>(areas, 0x8, 0x10 + (listSize - 1) * 4, 0xc, 0xc);
 				if (listSize == 9) {
 					if (areas != IntPtr.Zero) {
 						float minDis = 99999999;
@@ -153,72 +160,82 @@ namespace LiveSplit.Defunct.Memory {
 					}
 				}
 			}
-			return CheckPointNames.GetCheckpointName(x, y);
+			return CheckPointNames.GetCheckpointName(level, x, y);
 		}
 		public Vector CurrentPlayerPos() {
-			float x = playerHandler.Read<float>(0x0, 0x11c);
-			float y = playerHandler.Read<float>(0x0, 0x124);
-			float z = playerHandler.Read<float>(0x0, 0x120);
+			//PlayerHandler.self.currentGrPlayerPos
+			float x = playerHandler.Read<float>(Program, 0x0, 0x118);
+			float y = playerHandler.Read<float>(Program, 0x0, 0x120);
+			float z = playerHandler.Read<float>(Program, 0x0, 0x11c);
 			return new Vector() { X = x, Y = y, Z = z };
 		}
-		public string SceneToLoad() {
-			return sceneToLoad.Read(0x0);
-		}
 		public Vector CurrentVelocity() {
-			if (playerHandler.Value == IntPtr.Zero) { return default(Vector); }
+			if (playerHandler.GetPointer(Program) == IntPtr.Zero) { return default(Vector); }
 
-			float x = playerHandler.Read<float>(0x00, 0x38, 0x50);
-			float y = playerHandler.Read<float>(0x00, 0x38, 0x54);
-			float z = playerHandler.Read<float>(0x00, 0x38, 0x58);
+			//PlayerHandler.self.speedSettings.lastVelocity
+			float x = playerHandler.Read<float>(Program, 0x0, 0x34, 0x50);
+			float y = playerHandler.Read<float>(Program, 0x0, 0x34, 0x54);
+			float z = playerHandler.Read<float>(Program, 0x0, 0x34, 0x58);
 			return new Vector() { X = x, Y = y, Z = z, M = (float)Math.Sqrt(x * x + y * y + z * z) };
 		}
-		public void SetMax(float maxSpeed) {
-			Program.Write(playerHandler.Value, maxSpeed, 0x00, 0x38, 0x0c);
+		public string SceneToLoad() {
+			//PreloadLevel.s_sceneToLoad
+			return Program.Read((IntPtr)preloadLevel.Read<uint>(Program, -0x8));
 		}
 		public string CurrentLevelName() {
-			if (preloadLevel.Value != IntPtr.Zero) {
-				int index = preloadLevel.Read<int>();
+			if (preloadLevel.GetPointer(Program) != IntPtr.Zero) {
+				//PreloadLevel.s_levelIndex
+				int index = preloadLevel.Read<int>(Program);
 				if (index >= 0) {
-					IntPtr lvl = (IntPtr)levelHandler.Read<uint>(0x10, 0x08, 0x10 + (4 * index), 0x08);
-					return Program.Read(lvl);
+					if (!IsArcadePlay()) {
+						//LevelHandler.m_mainLevels[index].m_levelName
+						return Program.Read((IntPtr)levelHandler.Read<uint>(Program, 0x0, 0xc, 0x8, 0x10 + (4 * index), 0x8));
+					} else {
+						//LevelHandler.m_arcadeLevels[index].m_levelName
+						return Program.Read((IntPtr)levelHandler.Read<uint>(Program, 0x0, 0x10, 0x8, 0x10 + (4 * index), 0x8));
+					}
 				}
 			}
 			return string.Empty;
 		}
 		public string CurrentSceneName() {
-			if (preloadLevel.Value != IntPtr.Zero) {
-				int index = preloadLevel.Read<int>();
+			if (preloadLevel.GetPointer(Program) != IntPtr.Zero) {
+				//PreloadLevel.s_levelIndex
+				int index = preloadLevel.Read<int>(Program);
 				if (index >= 0) {
-					IntPtr lvl = (IntPtr)levelHandler.Read<uint>(0x10, 0x08, 0x10 + (4 * index), 0x0c);
-					return Program.Read(lvl);
+					if (!IsArcadePlay()) {
+						//LevelHandler.m_mainLevels[index].m_sceneName
+						return Program.Read((IntPtr)levelHandler.Read<uint>(Program, 0x0, 0xc, 0x8, 0x10 + (4 * index), 0xc));
+					} else {
+						//LevelHandler.m_arcadeLevels[index].m_sceneName
+						return Program.Read((IntPtr)levelHandler.Read<uint>(Program, 0x0, 0x10, 0x8, 0x10 + (4 * index), 0xc));
+					}
+
 				}
 			}
 			return string.Empty;
 		}
 
 		public bool HookProcess() {
-			if ((Program == null || Program.HasExited) && DateTime.Now > lastHooked.AddSeconds(1)) {
+			IsHooked = Program != null && !Program.HasExited;
+			if (!IsHooked && DateTime.Now > lastHooked.AddSeconds(1)) {
 				lastHooked = DateTime.Now;
-				Process[] processes = Process.GetProcessesByName("Defunct_x86");
+				Process[] processes = Process.GetProcessesByName("Defunctx86");
 				Program = processes.Length == 0 ? null : processes[0];
-				IsHooked = true;
-			}
-
-			if (Program == null || Program.HasExited) {
-				IsHooked = false;
+				if (Program != null) {
+					MemoryReader.Update64Bit(Program);
+					IsHooked = true;
+				}
 			}
 
 			return IsHooked;
 		}
 		public void Dispose() {
-			if (Program != null) {
-				if (!Program.HasExited) { SetMax(80); }
-				Program.Dispose();
-			}
+			if (Program != null) { Program.Dispose(); }
 		}
 	}
 	public static class CheckPointNames {
-		public static string GetCheckpointName(float x, float y) {
+		public static string GetCheckpointName(string level, float x, float y) {
 			if (Close(x, 925.67f) && Close(y, -1621.17f)) {
 				return "Home 1";
 			} else if (Close(x, 1075.73f) && Close(y, -928.06f)) {
@@ -349,150 +366,124 @@ namespace LiveSplit.Defunct.Memory {
 				return "Crash Site 3";
 			}
 
-			return string.Empty;
+			return level;
 		}
 		private static bool Close(float a, float b) {
 			return Math.Abs(a - b) < 0.02;
 		}
 	}
-	public enum MemVersion {
-		None,
+	public enum PointerVersion {
 		V1
 	}
-	public enum MemPointer {
-		LevelHandler,
-		LevelInfoScreen,
-		LevelIndex,
-		CurrentActiveCp,
-		CurrentAreas,
-		PreloadLevel,
-		SceneToLoad,
-		IsArcadePlay,
-		PlayerHandler,
-		SaveHandlerMain,
-		SaveHandlerArcade,
-		ArcadeTimer,
-		PausMGR
+	public enum AutoDeref {
+		None,
+		Single,
+		Double
+	}
+	public class ProgramSignature {
+		public PointerVersion Version { get; set; }
+		public string Signature { get; set; }
+		public int Offset { get; set; }
+		public ProgramSignature(PointerVersion version, string signature, int offset) {
+			Version = version;
+			Signature = signature;
+			Offset = offset;
+		}
+		public override string ToString() {
+			return Version.ToString() + " - " + Signature;
+		}
 	}
 	public class ProgramPointer {
-		private static Dictionary<MemVersion, Dictionary<MemPointer, string>> funcPatterns = new Dictionary<MemVersion, Dictionary<MemPointer, string>>() {
-			{MemVersion.V1, new Dictionary<MemPointer, string>() {
-					{MemPointer.LevelHandler,     "83C4108BF88BC783EC086A0050E8????????83C41085C074248BF785FF74158B068B008B40088B400C3D????????0F85????????B8"},
-					{MemPointer.LevelInfoScreen,  "EC5783EC248B7D08B8????????8938BA????????83EC0C57E8????????83C41089474C8B473483EC0C503900E8????????83C41083EC0C503900|-42" },
-					{MemPointer.LevelIndex,       "57503900E8????????83C4108BC88B45F88B49244183EC046A0051503900E8????????83C4108BF88BC785C00F84????????8B4F0CB8????????89088B4F24B8" },
-					{MemPointer.CurrentActiveCp,  "8BD139128B490C4983EC0851503900E8????????83C41083EC0C503900E8????????83C410EB2C8B05????????83EC086A0050E8????????83C41085C074148B05" },
-					{MemPointer.CurrentAreas,     "8BD139128B490C4983EC0851503900E8????????83C41083EC0C503900E8????????83C410EB2C8B05????????83EC086A0050E8????????83C41085C074148B05|-69" },
-					{MemPointer.PreloadLevel,     "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-95" },
-					{MemPointer.SceneToLoad,      "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-56" },
-					{MemPointer.IsArcadePlay,     "558BEC83EC188B05????????3D????????741B8B0D????????B8????????89080FB60D????????B8????????8808B8????????8B4D088908B8????????0FB64D0C8808B8????????8B4D108908B8????????0FB64D148808B9????????B8????????83EC085150|-25" },
-					{MemPointer.PlayerHandler,    "558BEC575681EC????????8B7D088B05????????83EC086A0050E8????????83C41085C00F84????????0FB605????????85C075198B05????????3D????????750C8B4738D905|-55" },
-					{MemPointer.SaveHandlerMain,  "????????8B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8|-37" },
-					{MemPointer.SaveHandlerArcade,"????????8B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8????????83C4108B05????????BA????????83EC0C50E8|-14" },
-					{MemPointer.ArcadeTimer,      "558BEC5783EC048B7D08B8????????89388B05????????83EC086A0050E8????????83C41085C0741B8B47108B0D????????8B491083EC0851503900E8????????83C41083EC0C57|-61" },
-					{MemPointer.PausMGR,          "558BEC83EC080FB60D????????0FB645083BC10F84????????B8????????0FB64D0888080FB605????????85C07421E8????????B8????????D918D9EE83EC0C83EC04D91C24E8????????83C410EB18B8????????D90083EC0C83EC04D91C24|-87" }
-			}},
-		};
-		private IntPtr pointer;
-		public DefunctMemory Memory { get; set; }
-		public MemPointer Name { get; set; }
-		public MemVersion Version { get; set; }
-		public bool AutoDeref { get; set; }
 		private int lastID;
 		private DateTime lastTry;
-		public ProgramPointer(DefunctMemory memory, MemPointer pointer) {
-			this.Memory = memory;
-			this.Name = pointer;
-			this.AutoDeref = true;
-			lastID = memory.Program == null ? -1 : memory.Program.Id;
+		private ProgramSignature[] signatures;
+		private int[] offsets;
+		public IntPtr Pointer { get; private set; }
+		public PointerVersion Version { get; private set; }
+		public AutoDeref AutoDeref { get; private set; }
+
+		public ProgramPointer(AutoDeref autoDeref, params ProgramSignature[] signatures) {
+			AutoDeref = autoDeref;
+			this.signatures = signatures;
+			lastID = -1;
+			lastTry = DateTime.MinValue;
+		}
+		public ProgramPointer(AutoDeref autoDeref, params int[] offsets) {
+			AutoDeref = autoDeref;
+			this.offsets = offsets;
+			lastID = -1;
 			lastTry = DateTime.MinValue;
 		}
 
-		public IntPtr Value {
-			get {
-				GetPointer();
-				return pointer;
-			}
+		public T Read<T>(Process program, params int[] offsets) where T : struct {
+			GetPointer(program);
+			return program.Read<T>(Pointer, offsets);
 		}
-		public T Read<T>(params int[] offsets) where T : struct {
-			return Memory.Program.Read<T>(Value, offsets);
+		public string Read(Process program, params int[] offsets) {
+			GetPointer(program);
+			return program.Read((IntPtr)program.Read<uint>(Pointer, offsets));
 		}
-		public string Read(params int[] offsets) {
-			if (!Memory.IsHooked) { return string.Empty; }
-
-			bool is64bit = Memory.Program.Is64Bit();
-			IntPtr p = IntPtr.Zero;
-			if (is64bit) {
-				p = (IntPtr)Memory.Program.Read<ulong>(Value, offsets);
-			} else {
-				p = (IntPtr)Memory.Program.Read<uint>(Value, offsets);
-			}
-			return Memory.Program.Read(p);
+		public byte[] ReadBytes(Process program, int length, params int[] offsets) {
+			GetPointer(program);
+			return program.Read(Pointer, length, offsets);
 		}
-		public void Write(int value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
+		public void Write<T>(Process program, T value, params int[] offsets) where T : struct {
+			GetPointer(program);
+			program.Write<T>(Pointer, value, offsets);
 		}
-		public void Write(long value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
+		public void Write(Process program, byte[] value, params int[] offsets) {
+			GetPointer(program);
+			program.Write(Pointer, value, offsets);
 		}
-		public void Write(double value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
-		}
-		public void Write(float value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
-		}
-		public void Write(short value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
-		}
-		public void Write(byte value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
-		}
-		public void Write(bool value, params int[] offsets) {
-			Memory.Program.Write(Value, value, offsets);
-		}
-		private void GetPointer() {
-			if (!Memory.IsHooked) {
-				pointer = IntPtr.Zero;
-				Version = MemVersion.None;
-				return;
+		public IntPtr GetPointer(Process program) {
+			if (program == null) {
+				Pointer = IntPtr.Zero;
+				lastID = -1;
+				return Pointer;
+			} else if (program.Id != lastID) {
+				Pointer = IntPtr.Zero;
+				lastID = program.Id;
 			}
 
-			if (Memory.Program.Id != lastID) {
-				pointer = IntPtr.Zero;
-				Version = MemVersion.None;
-				lastID = Memory.Program.Id;
-			}
-			if (pointer == IntPtr.Zero && DateTime.Now > lastTry.AddSeconds(1)) {
+			if (Pointer == IntPtr.Zero && DateTime.Now > lastTry.AddSeconds(1)) {
 				lastTry = DateTime.Now;
-				pointer = GetVersionedFunctionPointer();
-				if (pointer != IntPtr.Zero) {
-					bool is64bit = Memory.Program.Is64Bit();
-					pointer = (IntPtr)Memory.Program.Read<uint>(pointer);
-					if (AutoDeref) {
-						if (is64bit) {
-							pointer = (IntPtr)Memory.Program.Read<ulong>(pointer);
-						} else {
-							pointer = (IntPtr)Memory.Program.Read<uint>(pointer);
+
+				Pointer = GetVersionedFunctionPointer(program);
+				if (Pointer != IntPtr.Zero) {
+					if (AutoDeref != AutoDeref.None) {
+						Pointer = (IntPtr)program.Read<uint>(Pointer);
+						if (AutoDeref == AutoDeref.Double) {
+							if (MemoryReader.is64Bit) {
+								Pointer = (IntPtr)program.Read<ulong>(Pointer);
+							} else {
+								Pointer = (IntPtr)program.Read<uint>(Pointer);
+							}
 						}
 					}
 				}
 			}
+			return Pointer;
 		}
-		private IntPtr GetVersionedFunctionPointer() {
-			foreach (MemVersion version in Enum.GetValues(typeof(MemVersion))) {
-				Dictionary<MemPointer, string> patterns = null;
-				if (!funcPatterns.TryGetValue(version, out patterns)) { continue; }
+		private IntPtr GetVersionedFunctionPointer(Process program) {
+			if (signatures != null) {
+				MemorySearcher searcher = new MemorySearcher();
+				searcher.MemoryFilter = delegate (MemInfo info) {
+					return (info.State & 0x1000) != 0 && (info.Protect & 0x40) != 0 && (info.Protect & 0x100) == 0;
+				};
+				for (int i = 0; i < signatures.Length; i++) {
+					ProgramSignature signature = signatures[i];
 
-				string pattern = null;
-				if (!patterns.TryGetValue(Name, out pattern)) { continue; }
-
-				IntPtr ptr = Memory.Program.FindSignatures(pattern)[0];
-				if (ptr != IntPtr.Zero) {
-					Version = version;
-					return ptr;
+					IntPtr ptr = searcher.FindSignature(program, signature.Signature);
+					if (ptr != IntPtr.Zero) {
+						Version = signature.Version;
+						return ptr + signature.Offset;
+					}
 				}
+
+				return IntPtr.Zero;
 			}
-			Version = MemVersion.None;
-			return IntPtr.Zero;
+
+			return (IntPtr)program.Read<uint>(program.MainModule.BaseAddress, offsets);
 		}
 	}
 	public struct Vector {

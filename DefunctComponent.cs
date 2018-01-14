@@ -1,4 +1,5 @@
-﻿using LiveSplit.Model;
+﻿using LiveSplit.Defunct.Memory;
+using LiveSplit.Model;
 using LiveSplit.UI;
 using LiveSplit.UI.Components;
 using System;
@@ -7,48 +8,52 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml;
-using LiveSplit.Defunct.Memory;
 namespace LiveSplit.Defunct {
 	public class DefunctComponent : IComponent {
 		public string ComponentName { get { return "Defunct Autosplitter"; } }
 		public TimerModel Model { get; set; }
 		public IDictionary<string, Action> ContextMenuControls { get { return null; } }
 		private DefunctMemory mem;
-		private int currentSplit = 0;
-		private int state = 0;
+		private int currentSplit, state, lastLogCheck, platinumCount;
 		private bool hasLog = false;
-		private int lastLogCheck = 0;
-		private int platinumCount = 0;
 		private float lastTime = 0;
 		internal static string[] keys = { "CurrentSplit", "State", "SceneName", "SceneToLoad", "IsArcade", "PlatniumCount", "ArcadeTimer", "TimerOn", "IsPaused" };
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
 
-		public DefunctComponent() {
+		public DefunctComponent(LiveSplitState state) {
 			mem = new DefunctMemory();
 			foreach (string key in keys) {
 				currentValues[key] = "";
 			}
+
+			if (state != null) {
+				Model = new TimerModel() { CurrentState = state };
+				Model.InitializeGameTime();
+				Model.CurrentState.IsGameTimePaused = true;
+				state.OnReset += OnReset;
+				state.OnPause += OnPause;
+				state.OnResume += OnResume;
+				state.OnStart += OnStart;
+				state.OnSplit += OnSplit;
+				state.OnUndoSplit += OnUndoSplit;
+				state.OnSkipSplit += OnSkipSplit;
+			}
+
 			manager = new DefunctManager();
 			manager.Memory = mem;
-			manager.Component = this;
 			manager.Show();
 			manager.Visible = false;
 		}
 
 		public void GetValues() {
-			if (!mem.HookProcess()) {
-				if (manager.Visible) { manager.Invoke((Action)delegate () { manager.Hide(); }); }
-				return;
-			} else if (!manager.Visible) {
-				manager.Invoke((Action)delegate () { manager.Show(); });
-			}
-
-			LogValues();
+			if (!mem.HookProcess()) { return; }
 
 			if (Model != null) {
 				HandleSplits();
 			}
+
+			LogValues();
 		}
 		private void HandleSplits() {
 			bool shouldSplit = false;
@@ -133,7 +138,7 @@ namespace LiveSplit.Defunct {
 			lastLogCheck--;
 
 			if (hasLog || !Console.IsOutputRedirected) {
-				string prev = "", curr = "";
+				string prev = string.Empty, curr = string.Empty;
 				foreach (string key in keys) {
 					prev = currentValues[key];
 
@@ -146,10 +151,11 @@ namespace LiveSplit.Defunct {
 						case "PlatniumCount": curr = mem.PlatinumCount().ToString(); break;
 						case "ArcadeTimer": curr = mem.CurrentArcadeTime().ToString("0"); break;
 						case "TimerOn": curr = mem.TimerOn().ToString(); break;
-						case "IsPaused": curr = mem.IsPaused().ToString(); break;
 						default: curr = ""; break;
 					}
 
+					if (string.IsNullOrEmpty(prev)) { prev = string.Empty; }
+					if (string.IsNullOrEmpty(curr)) { curr = string.Empty; }
 					if (!prev.Equals(curr)) {
 						WriteLog(DateTime.Now.ToString(@"HH\:mm\:ss.fff") + (Model != null ? " | " + Model.CurrentState.CurrentTime.RealTime.Value.ToString("G").Substring(3, 11) : "") + ": " + key + ": ".PadRight(16 - key.Length, ' ') + prev.PadLeft(25, ' ') + " -> " + curr);
 
@@ -160,17 +166,17 @@ namespace LiveSplit.Defunct {
 		}
 
 		public void Update(IInvalidator invalidator, LiveSplitState lvstate, float width, float height, LayoutMode mode) {
-			if (Model == null) {
-				Model = new TimerModel() { CurrentState = lvstate };
-				Model.InitializeGameTime();
-				Model.CurrentState.IsGameTimePaused = true;
-				lvstate.OnReset += OnReset;
-				lvstate.OnPause += OnPause;
-				lvstate.OnResume += OnResume;
-				lvstate.OnStart += OnStart;
-				lvstate.OnSplit += OnSplit;
-				lvstate.OnUndoSplit += OnUndoSplit;
-				lvstate.OnSkipSplit += OnSkipSplit;
+			//Remove duplicate autosplitter componenets
+			IList<ILayoutComponent> components = lvstate.Layout.LayoutComponents;
+			bool hasAutosplitter = false;
+			for (int i = components.Count - 1; i >= 0; i--) {
+				ILayoutComponent component = components[i];
+				if (component.Component is DefunctComponent) {
+					if ((invalidator == null && width == 0 && height == 0) || hasAutosplitter) {
+						components.Remove(component);
+					}
+					hasAutosplitter = true;
+				}
 			}
 
 			GetValues();
