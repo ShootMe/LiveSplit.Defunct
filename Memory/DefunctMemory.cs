@@ -222,7 +222,7 @@ namespace LiveSplit.Defunct.Memory {
 				lastHooked = DateTime.Now;
 				Process[] processes = Process.GetProcessesByName("Defunctx86");
 				Program = processes.Length == 0 ? null : processes[0];
-				if (Program != null) {
+				if (Program != null && !Program.HasExited) {
 					MemoryReader.Update64Bit(Program);
 					IsHooked = true;
 				}

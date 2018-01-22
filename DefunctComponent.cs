@@ -96,14 +96,7 @@ namespace LiveSplit.Defunct {
 							break;
 						default:
 							float currentTime = mem.CurrentArcadeTime();
-							if (currentTime != lastTime && sceneToLoad != "Menu_RA" && mem.IsArcadePlay() && mem.TimerOn()) {
-								state = 1;
-								Model.CurrentState.IsGameTimePaused = false;
-							} else if (state > 1) {
-								Model.CurrentState.IsGameTimePaused = true;
-							} else if (state > 0) {
-								state++;
-							}
+							Model.CurrentState.IsGameTimePaused = currentTime == lastTime || sceneToLoad == "Menu_RA" || !mem.IsArcadePlay() || !mem.TimerOn();
 
 							int currentPlatnium = mem.PlatinumCount();
 							shouldSplit = currentPlatnium > 1 && currentPlatnium != platinumCount;
