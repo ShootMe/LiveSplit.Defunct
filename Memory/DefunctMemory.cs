@@ -8,6 +8,7 @@ namespace LiveSplit.Defunct.Memory {
 		private static ProgramPointer playerHandler = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC575681EC????????8B7D088B05????????83EC086A0050E8", 16));
 		private static ProgramPointer saveHandler = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC5783EC148B05????????83EC086A0050E8????????83C41085C00F84????????83EC0C68", 9));
 		private static ProgramPointer arcadeTimer = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC5783EC048B7D08B8????????89388B05????????83EC086A0050", 11));
+		private static ProgramPointer pauseMenu = new ProgramPointer(AutoDeref.Single, new ProgramSignature(PointerVersion.V1, "558BEC53575683EC6C8B7D080FB605????????85C00F840404000083EC0C6A01E8", 15));
 		private float[] junkX = { 992.36f, 725.25f, 540.18f, 1513.69f, 1082.25f, 422.82f, 1494.81f, 692.56f, 1559.98f };
 		private float[] junkY = { 6039.27f, 6288.26f, 6407.79f, 6441.79f, 6484.88f, 6676.19f, 6999.13f, 7093.40f, 7325.27f };
 		public Process Program { get; set; }
@@ -16,6 +17,10 @@ namespace LiveSplit.Defunct.Memory {
 
 		public DefunctMemory() {
 			lastHooked = DateTime.MinValue;
+		}
+		public void AllowPause() {
+			//PausMenyRA.s_isAvailable
+			pauseMenu.Write<int>(Program, 1, 0x0);
 		}
 		public Vector CurrentCP() {
 			//CheckPointSystem.currentActiveCp.midPos.X
@@ -27,22 +32,34 @@ namespace LiveSplit.Defunct.Memory {
 			return new Vector() { X = x, Y = y, M = strength };
 		}
 		public void UnlockAllLevels() {
-			if (saveHandler.GetPointer(Program) != IntPtr.Zero) {
-				//SaveHandler.s_instance.s_mainLevels.m_levelDatas
-				IntPtr mainLevels = (IntPtr)saveHandler.Read<uint>(Program, 0x0, 0x10, 0x10);
-				int size = Program.Read<int>(mainLevels, 0xc);
-				for (int i = 0; i < size; i++) {
-					IntPtr level = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + i * 4);
-					IntPtr nextLevel = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
-					bool unlocked = Program.Read<bool>(level, 0x14);
-					bool completed = Program.Read<bool>(level, 0x15);
-					bool nextUnlocked = Program.Read<bool>(nextLevel, 0x14);
-					bool nextCompleted = Program.Read<bool>(nextLevel, 0x15);
-					if ((unlocked ^ completed) || (!(unlocked & completed) && (nextUnlocked | nextCompleted))) {
-						Program.Write(level, 16843009, 0x14);
-					}
+			if (saveHandler.GetPointer(Program) == IntPtr.Zero) { return; }
+
+			//SaveHandler.s_instance.s_mainLevels.m_levelDatas
+			IntPtr mainLevels = (IntPtr)saveHandler.Read<uint>(Program, 0x0, 0x10, 0x10);
+			int size = Program.Read<int>(mainLevels, 0xc);
+			for (int i = 0; i < size; i++) {
+				IntPtr level = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + i * 4);
+				IntPtr nextLevel = (IntPtr)Program.Read<uint>(mainLevels, 0x10 + (i + 1 < size ? i + 1 : i) * 4);
+				bool unlocked = Program.Read<bool>(level, 0x14);
+				bool completed = Program.Read<bool>(level, 0x15);
+				bool nextUnlocked = Program.Read<bool>(nextLevel, 0x14);
+				bool nextCompleted = Program.Read<bool>(nextLevel, 0x15);
+				if ((unlocked ^ completed) || (!(unlocked & completed) && (nextUnlocked | nextCompleted))) {
+					Program.Write(level, 16843009, 0x14);
 				}
 			}
+		}
+		public void UnlockLost() {
+			if (saveHandler.GetPointer(Program) == IntPtr.Zero) { return; }
+
+			//SaveHandler.s_instance.s_mainLevels.m_levelDatas[1]
+			saveHandler.Write<int>(Program, 16843009, 0x0, 0x10, 0x10, 0x14, 0x14);
+			//SaveHandler.s_instance.s_progressInfo.latestRevealedLevel
+			saveHandler.Write<int>(Program, 0, 0x0, 0x18, 0x18);
+			//SaveHandler.s_instance.s_progressInfo.latestUnlockedMainLevelIndex
+			saveHandler.Write<int>(Program, 1, 0x0, 0x18, 0x1c);
+			//SaveHandler.s_instance.s_progressInfo.latestUnlockedArcadeLevelIndex
+			saveHandler.Write<int>(Program, 1, 0x0, 0x18, 0x20);
 		}
 		public int PlatinumCount() {
 			int count = 0;

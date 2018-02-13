@@ -90,6 +90,12 @@ namespace LiveSplit.Defunct {
 					if (sceneToLoad == "Menu_RA") {
 						mem.ResetTimer();
 					}
+
+					if (currentScene == "Cargo_Ship_01" && currentSplit == 2) {
+						mem.AllowPause();
+						mem.UnlockLost();
+					}
+
 					switch (currentSplit) {
 						case 1:
 							shouldSplit = pos.X >= 895 && pos.X <= 915 && y >= 1153 && y <= 1165 && pos.Z >= -8 && pos.Z <= 8;
