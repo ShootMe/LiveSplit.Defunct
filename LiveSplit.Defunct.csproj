@@ -64,7 +64,7 @@
     <Compile Include="DefunctManager.Designer.cs">
       <DependentUpon>DefunctManager.cs</DependentUpon>
     </Compile>
-    <Compile Include="Memory\DefunctMemory.cs" />
+    <Compile Include="Memory\SplitterMemory.cs" />
     <Compile Include="SplitterInfo.cs" />
     <Compile Include="Memory\Memory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

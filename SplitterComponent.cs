@@ -243,6 +243,15 @@ namespace LiveSplit.Defunct {
 			manager.Close();
 			manager.Dispose();
 			mem.Dispose();
+			if(Model != null) {
+				Model.CurrentState.OnReset -= OnReset;
+				Model.CurrentState.OnPause -= OnPause;
+				Model.CurrentState.OnResume -= OnResume;
+				Model.CurrentState.OnStart -= OnStart;
+				Model.CurrentState.OnSplit -= OnSplit;
+				Model.CurrentState.OnUndoSplit -= OnUndoSplit;
+				Model.CurrentState.OnSkipSplit -= OnSkipSplit;
+			}
 		}
 	}
 }
