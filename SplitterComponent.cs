@@ -1,5 +1,4 @@
-﻿using LiveSplit.Defunct.Memory;
-using LiveSplit.Model;
+﻿using LiveSplit.Model;
 using LiveSplit.UI;
 using LiveSplit.UI.Components;
 using System;
@@ -9,11 +8,11 @@ using System.IO;
 using System.Windows.Forms;
 using System.Xml;
 namespace LiveSplit.Defunct {
-	public class DefunctComponent : IComponent {
+	public class SplitterComponent : IComponent {
 		public string ComponentName { get { return "Defunct Autosplitter"; } }
 		public TimerModel Model { get; set; }
 		public IDictionary<string, Action> ContextMenuControls { get { return null; } }
-		private DefunctMemory mem;
+		private SplitterMemory mem;
 		private int currentSplit, state, lastLogCheck, platinumCount;
 		private bool hasLog = false;
 		private float lastTime = 0;
@@ -21,8 +20,8 @@ namespace LiveSplit.Defunct {
 		private Dictionary<string, string> currentValues = new Dictionary<string, string>();
 		private DefunctManager manager;
 
-		public DefunctComponent(LiveSplitState state) {
-			mem = new DefunctMemory();
+		public SplitterComponent(LiveSplitState state) {
+			mem = new SplitterMemory();
 			foreach (string key in keys) {
 				currentValues[key] = "";
 			}
@@ -169,7 +168,7 @@ namespace LiveSplit.Defunct {
 			bool hasAutosplitter = false;
 			for (int i = components.Count - 1; i >= 0; i--) {
 				ILayoutComponent component = components[i];
-				if (component.Component is DefunctComponent) {
+				if (component.Component is SplitterComponent) {
 					if ((invalidator == null && width == 0 && height == 0) || hasAutosplitter) {
 						components.Remove(component);
 					}

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 namespace LiveSplit.Defunct {
-	public class DefunctTest {
-		private static DefunctComponent comp = new DefunctComponent(null);
+	public class SplitterInfo {
+		private static SplitterComponent comp = new SplitterComponent(null);
 		[STAThread]
 		public static void Main(string[] args) {
 			try {

@@ -1,11 +1,10 @@
-﻿using LiveSplit.Defunct.Memory;
-using System;
+﻿using System;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 namespace LiveSplit.Defunct {
 	public partial class DefunctManager : Form {
-		public DefunctMemory Memory { get; set; }
+		public SplitterMemory Memory { get; set; }
 		private Thread getValuesThread = null;
 		public DefunctManager() {
 			InitializeComponent();
